@@ -5,187 +5,246 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Performance Tracker Ultra</title>
+    <title>Performance Tracker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; }
-        .score-animation { animation: pulse 0.4s ease-out; }
-        @keyframes pulse {
+        .score-glow { text-shadow: 0 0 20px rgba(249, 115, 22, 0.2); }
+        @keyframes pulse-orange {
             0% { transform: scale(1); }
-            50% { transform: scale(1.15); color: #f97316; }
+            50% { transform: scale(1.05); color: #fb923c; }
             100% { transform: scale(1); }
         }
-        .card-anim { transition: all 0.3s ease; }
+        @keyframes slide-up {
+            0% { transform: translate(-50%, 100%); opacity: 0; }
+            100% { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .animate-score { animation: pulse-orange 0.3s ease-out; }
+        .conquest-card { 
+            position: fixed;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            z-index: 100;
+            animation: slide-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+        }
+        
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        .lucide { width: 20px; height: 20px; stroke-width: 2.5px; }
     </style>
 </head>
-<body class="bg-[#0f0f0f] text-slate-100 font-sans min-h-screen selection:bg-orange-500 relative">
+<body class="bg-[#0c0c0c] text-zinc-100 font-sans min-h-screen relative">
 
     <div class="max-w-md mx-auto p-6 pb-24">
         <header class="mb-8 pt-6">
-            <div class="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-2xl text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-600 to-red-600"></div>
+            <div class="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 shadow-2xl text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-600 to-orange-400"></div>
                 
-                <button onclick="toggleStore()" class="absolute top-5 right-5 text-yellow-500 hover:scale-110 transition-all p-2 bg-yellow-500/10 rounded-full border border-yellow-500/20 active:scale-95 z-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" /></svg>
+                <button onclick="toggleStore()" class="absolute top-6 right-6 text-orange-500 p-2.5 bg-orange-500/10 rounded-full border border-orange-500/20 active:scale-95 z-10">
+                    <i data-lucide="shopping-bag"></i>
                 </button>
 
-                <h1 class="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-black mb-1 mt-2">Score de Performance</h1>
-                <div id="score" class="text-7xl font-black text-white tracking-tighter">0</div>
-                <div class="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20">
-                    <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                    <span id="rank-name" class="text-[10px] font-bold uppercase text-orange-500 tracking-widest">Recruta</span>
+                <h1 class="text-[10px] uppercase tracking-[0.4em] text-zinc-500 font-black mb-1 mt-2">Performance Score</h1>
+                <div id="score" class="text-8xl font-black text-white tracking-tighter score-glow">0</div>
+                
+                <div class="mt-5 inline-flex flex-col items-center gap-2">
+                    <div class="px-5 py-2 rounded-full bg-orange-500/10 border border-orange-500/20">
+                        <span id="rank-name" class="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em]">Vagabundo</span>
+                    </div>
+                    <div class="w-32 h-1 bg-zinc-800 rounded-full mt-2 overflow-hidden">
+                        <div id="daily-progress" class="h-full bg-orange-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 mb-10 shadow-xl">
-            <div class="flex gap-2 mb-3">
-                <input type="text" id="taskInput" placeholder="Nova missão..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-600 transition-all">
-                <input type="number" id="taskPoints" placeholder="Pts" class="w-16 bg-zinc-950 border border-zinc-800 rounded-xl px-2 py-3 text-center text-sm focus:outline-none focus:border-orange-600">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-10 shadow-xl">
+            <div class="flex gap-3 mb-4">
+                <input type="text" id="taskInput" placeholder="Nova missão..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-orange-500">
+                <input type="number" id="taskPoints" placeholder="Pts" class="w-20 bg-zinc-950 border border-zinc-800 rounded-xl px-2 py-4 text-center text-sm focus:outline-none focus:border-orange-500 font-bold text-orange-500">
             </div>
             <div class="flex items-center justify-between">
-                <label class="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 cursor-pointer">
-                    <input type="checkbox" id="taskDaily" class="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-orange-600 focus:ring-0">
-                    Repetir Diariamente
+                <label class="flex items-center gap-3 text-[10px] font-black uppercase text-zinc-500 cursor-pointer">
+                    <input type="checkbox" id="taskDaily" class="w-5 h-5 rounded border-zinc-800 bg-zinc-950 text-orange-600 focus:ring-0">
+                    Tarefa Diária
                 </label>
-                <button onclick="addTask()" class="bg-white text-black px-6 py-2 rounded-xl font-black text-xs uppercase hover:bg-orange-500 hover:text-white transition-all">Salvar</button>
+                <button onclick="addTask()" class="bg-white text-black px-8 py-3 rounded-xl font-black text-xs uppercase hover:bg-orange-500 hover:text-white transition-all">Salvar</button>
             </div>
         </div>
 
-        <div class="flex justify-between items-center mb-5 px-1">
-            <h2 class="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">Quadro de Missões</h2>
-            <button onclick="clearHistory()" class="text-[10px] text-zinc-700 hover:text-red-500 font-bold uppercase transition-colors">Reset Total</button>
+        <div class="flex justify-between items-end mb-6 px-1">
+            <h2 class="text-xs font-black uppercase tracking-widest text-white">Quadro de Missões</h2>
+            <div class="flex gap-2">
+                <button onclick="restoreDefaultTasks()" class="text-[9px] bg-zinc-900 text-zinc-400 px-3 py-1.5 rounded-lg border border-zinc-800 font-bold uppercase transition-all">Padrões</button>
+                <button onclick="clearTasksOnly()" class="text-[9px] bg-zinc-900 text-zinc-700 px-3 py-1.5 rounded-lg border border-zinc-800 font-bold uppercase transition-all">Reset Tarefas</button>
+            </div>
         </div>
 
-        <div id="taskList" class="space-y-3"></div>
+        <div id="taskList" class="space-y-4"></div>
     </div>
 
     <div id="storeModal" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 backdrop-blur-xl opacity-0 pointer-events-none transition-all">
         <div class="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-sm shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
-            
             <div class="p-8 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
                 <div>
-                    <h2 class="text-xs font-black uppercase tracking-[0.2em] text-yellow-500 mb-1">Mercado Negro</h2>
-                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Resgate suas Recompensas</p>
+                    <h2 class="text-xs font-black uppercase text-orange-500 mb-1">Mercado Pro</h2>
+                    <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Resgate Prêmios</p>
                 </div>
-                <button onclick="toggleStore()" class="text-zinc-500 bg-zinc-800 p-2 rounded-full hover:text-white transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18 18 6M6 6l12 12"/></svg>
+                <button onclick="toggleStore()" class="text-zinc-500 bg-zinc-800 p-2 rounded-full hover:text-white">
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-
             <div class="p-6 bg-zinc-950/50 border-b border-zinc-800">
                 <div class="flex flex-col gap-2">
-                    <div class="flex gap-2">
-                        <input type="text" id="newRewardName" placeholder="Nome do prêmio..." class="text-xs flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500">
-                        <input type="number" id="newRewardCost" placeholder="Pts" class="text-xs w-20 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-yellow-500">
+                    <div class="flex gap-3">
+                        <input type="text" id="newRewardName" placeholder="Prêmio..." class="text-xs flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none">
+                        <input type="number" id="newRewardCost" placeholder="Pts" class="text-xs w-20 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none font-bold text-orange-500 text-center">
                     </div>
-                    <button onclick="createReward()" class="w-full bg-zinc-100 text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-yellow-500 transition-colors">Cadastrar Item</button>
+                    <button onclick="createReward()" class="w-full bg-zinc-100 text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-colors">Cadastrar Recompensa</button>
                 </div>
             </div>
-
             <div id="storeItems" class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1"></div>
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all transform z-50 pointer-events-none opacity-0 translate-y-20"></div>
+    <div id="conquestOverlay" class="z-[100] pointer-events-none"></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-[10px] font-black tracking-widest shadow-2xl transition-all duration-300 z-50 pointer-events-none opacity-0 translate-y-20 bg-orange-600 text-white"></div>
 
     <script>
-        // --- CONFIGURAÇÕES E ÍCONES ---
-        const icons = {
-            'Lavar louça': '🍴', 'Limpar Robô': '🤖', 'Estudar 1 Hora': '📖',
-            'Mamadeira Bebê': '🍼', 'Colocar Bebê para Dormir': '😴',
-            'Dormir antes das 11H': '🛌', 'Acordar até 7H': '👁️',
-            'Treinar': '🏋️', 'Supermercado': '🛒',
-            '1 Hora de Video Game': '🎮', 'Pedir comida': '🍕',
-            '1 Hora de sono': '💤', '1 Hora de sossego': '🕊️',
-            'default': '🎯'
+        // Atualizado com os novos ícones para as recompensas padrão
+        const taskIcons = {
+            'Lavar louça': 'utensils', 'Limpar Robô': 'cpu', 'Estudar 1 Hora': 'book-open',
+            'Mamadeira Bebê': 'baby', 'Colocar Bebê para Dormir': 'moon',
+            'Dormir antes das 11H': 'bed', 'Acordar até 7H': 'sunrise',
+            'Treinar': 'dumbbell', 'Supermercado': 'shopping-basket',
+            '1 Hora de Video game': 'gamepad-2', 
+            '1 Hora de Sono': 'bed', 
+            '1 Hora de Sossego': 'wind', 
+            'Passeio Solo': 'footprints', 
+            'Pedir Delivery': 'pizza',
+            'default_task': 'target', 'default_reward': 'trophy'
         };
 
-        // --- DADOS ---
         let score = parseInt(localStorage.getItem('app_score')) || 0;
         let lastReset = localStorage.getItem('app_last_reset') || "";
-
-        const defaultTasks = [
-            { id: 1, title: 'Lavar louça', points: 10, isDaily: true, completed: false },
-            { id: 2, title: 'Limpar Robô', points: 10, isDaily: true, completed: false },
-            { id: 3, title: 'Estudar 1 Hora', points: 10, isDaily: true, completed: false },
-            { id: 4, title: 'Mamadeira Bebê', points: 10, isDaily: true, completed: false },
-            { id: 5, title: 'Colocar Bebê para Dormir', points: 10, isDaily: true, completed: false },
-            { id: 6, title: 'Dormir antes das 11H', points: 10, isDaily: true, completed: false },
-            { id: 7, title: 'Acordar até 7H', points: 10, isDaily: true, completed: false },
-            { id: 8, title: 'Treinar', points: 10, isDaily: true, completed: false },
-            { id: 9, title: 'Supermercado', points: 10, isDaily: true, completed: false }
-        ];
-
+        let tasks = JSON.parse(localStorage.getItem('app_tasks')) || [];
+        
+        // Recompensas Padrão
         const defaultRewards = [
-            { id: 101, name: "1 Hora de Video Game", cost: 300 },
-            { id: 102, name: "Pedir comida", cost: 300 },
-            { id: 103, name: "1 Hora de sono", cost: 400 },
-            { id: 104, name: "1 Hora de sossego", cost: 300 }
+            { id: 101, name: '1 Hora de Video game', cost: 500 },
+            { id: 102, name: '1 Hora de Sono', cost: 500 },
+            { id: 103, name: '1 Hora de Sossego', cost: 500 },
+            { id: 104, name: 'Passeio Solo', cost: 500 },
+            { id: 105, name: 'Pedir Delivery', cost: 500 }
         ];
 
-        let tasks = JSON.parse(localStorage.getItem('app_tasks')) || defaultTasks;
-        let rewards = JSON.parse(localStorage.getItem('app_rewards')) || defaultRewards;
+        // Lógica de Primeiro Acesso para a Loja
+        let savedRewards = localStorage.getItem('app_rewards');
+        let rewards = savedRewards ? JSON.parse(savedRewards) : defaultRewards;
+        
+        let lastRankIndex = -1;
 
-        // --- LÓGICA DE RESET DIÁRIO ---
-        function checkDailyReset() {
-            const today = new Date().toLocaleDateString();
-            if (lastReset !== today) {
-                tasks.forEach(t => { if(t.isDaily) t.completed = false; });
-                lastReset = today;
-                localStorage.setItem('app_last_reset', lastReset);
-                updateUI();
-            }
-        }
+        const ranks = [
+            { name: "Vagabundo", min: 0 },
+            { name: "Cidadão", min: 0.25 },
+            { name: "Orgulho", min: 0.50 },
+            { name: "Te respeito", min: 0.75 },
+            { name: "Monstro", min: 1.0 }
+        ];
 
-        // --- ATUALIZAÇÃO DA INTERFACE ---
         function updateUI() {
-            // Score e Rank
-            document.getElementById('score').innerText = score;
-            const rN = document.getElementById('rank-name');
-            if (score >= 2000) rN.innerText = "Lenda";
-            else if (score >= 1000) rN.innerText = "Mestre";
-            else if (score >= 500) rN.innerText = "Elite";
-            else if (score >= 100) rN.innerText = "Ativo";
-            else rN.innerText = "Recruta";
+            const totalTasks = tasks.length;
+            const completedToday = tasks.filter(t => t.completed).length;
+            const progress = totalTasks > 0 ? completedToday / totalTasks : 0;
+            
+            let currentRankIndex = 0;
+            for(let i = ranks.length - 1; i >= 0; i--) {
+                if(progress >= ranks[i].min) {
+                    currentRankIndex = i;
+                    break;
+                }
+            }
 
-            // Lista de Tarefas
+            if (currentRankIndex > lastRankIndex && lastRankIndex !== -1) {
+                showConquest(ranks[currentRankIndex].name);
+            }
+            lastRankIndex = currentRankIndex;
+
+            document.getElementById('score').innerText = score;
+            document.getElementById('rank-name').innerText = ranks[currentRankIndex].name;
+            document.getElementById('daily-progress').style.width = `${progress * 100}%`;
+
             const tList = document.getElementById('taskList');
             tList.innerHTML = '';
             tasks.forEach(t => {
-                const icon = icons[t.title] || icons['default'];
+                const iconName = taskIcons[t.title] || taskIcons['default_task'];
                 const div = document.createElement('div');
-                div.className = `card-anim p-5 rounded-2xl border flex items-center justify-between ${t.completed ? 'bg-zinc-950 border-zinc-900 opacity-40 scale-[0.97]' : 'bg-zinc-900 border-zinc-800 shadow-lg'}`;
+                div.className = `card-anim p-5 rounded-2xl border flex items-center justify-between ${t.completed ? 'bg-zinc-950 border-zinc-900 opacity-40 scale-[0.98]' : 'bg-zinc-900 border-zinc-800 shadow-lg'}`;
                 div.innerHTML = `
                     <div class="flex items-center gap-4">
-                        <span class="text-2xl">${icon}</span>
+                        <div class="${t.completed ? 'text-zinc-700' : 'text-orange-500'} bg-zinc-950 p-3 rounded-xl border border-zinc-800">
+                            <i data-lucide="${iconName}"></i>
+                        </div>
                         <div>
-                            <p class="font-bold text-sm ${t.completed ? 'line-through text-zinc-600' : 'text-zinc-200'}">${t.title}</p>
-                            <p class="text-[9px] font-black text-orange-500 uppercase tracking-tighter">${t.isDaily ? 'Diária' : 'Única'} • ${t.points} Pts</p>
+                            <p class="font-bold text-sm ${t.completed ? 'line-through text-zinc-600' : 'text-zinc-100'}">${t.title}</p>
+                            <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">${t.points} Pts</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1">
                         ${!t.completed ? `
-                            <button onclick="editItem('task', ${t.id})" class="text-zinc-600 hover:text-blue-400 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
-                            <button onclick="deleteItem('task', ${t.id})" class="text-zinc-600 hover:text-red-500 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-                            <button onclick="completeTask(${t.id})" class="ml-2 bg-orange-600 text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase tracking-widest active:scale-90 transition-all">Check</button>
-                        ` : '<span class="text-green-500 text-[9px] font-black uppercase mr-2 tracking-widest">Concluída</span>'}
+                            <button onclick="editItem('task', ${t.id})" class="text-zinc-600 p-2"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="deleteItem('task', ${t.id})" class="text-zinc-600 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="completeTask(${t.id})" class="ml-2 bg-orange-600 text-white text-[10px] font-black px-5 py-2.5 rounded-xl uppercase">Check</button>
+                        ` : '<div class="text-orange-500/50 p-2"><i data-lucide="check-circle" class="w-6 h-6"></i></div>'}
                     </div>
                 `;
                 tList.appendChild(div);
             });
 
-            // Salvar Dados
             localStorage.setItem('app_score', score);
             localStorage.setItem('app_tasks', JSON.stringify(tasks));
             localStorage.setItem('app_rewards', JSON.stringify(rewards));
-            
-            if (!document.getElementById('storeModal').classList.contains('pointer-events-none')) renderStore();
+            lucide.createIcons();
         }
 
-        // --- CRUD TAREFAS ---
+        function showConquest(rankName) {
+            setTimeout(() => {
+                const container = document.getElementById('conquestOverlay');
+                const card = document.createElement('div');
+                card.className = "conquest-card bg-white text-black px-6 py-4 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 border-2 border-orange-500";
+                card.innerHTML = `
+                    <div class="bg-orange-500 p-2 rounded-full text-white"><i data-lucide="medal"></i></div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-zinc-400 mb-1">Evolução Diária</p>
+                        <p class="text-sm font-black uppercase">Você atingiu o nível "${rankName}"!</p>
+                    </div>
+                `;
+                container.appendChild(card);
+                lucide.createIcons();
+                setTimeout(() => { 
+                    card.style.opacity = '0'; 
+                    card.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => card.remove(), 500); 
+                }, 3000);
+            }, 800);
+        }
+
+        function completeTask(id) {
+            const t = tasks.find(x => x.id === id);
+            score += t.points;
+            t.completed = true;
+            document.getElementById('score').classList.add('animate-score');
+            setTimeout(() => document.getElementById('score').classList.remove('animate-score'), 300);
+            updateUI();
+            showToast(`+${t.points} PONTOS`);
+        }
+
         function addTask() {
             const title = document.getElementById('taskInput').value.trim();
             const points = parseInt(document.getElementById('taskPoints').value) || 10;
@@ -195,114 +254,124 @@
                 document.getElementById('taskInput').value = '';
                 document.getElementById('taskPoints').value = '';
                 updateUI();
-                showToast("Missão Adicionada!");
             }
         }
 
-        function completeTask(id) {
-            const t = tasks.find(x => x.id === id);
-            score += t.points;
-            if (t.isDaily) t.completed = true;
-            else tasks = tasks.filter(x => x.id !== id);
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-20');
+            t.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                t.classList.remove('opacity-100', 'translate-y-0');
+                t.classList.add('opacity-0', 'translate-y-20');
+            }, 2000);
+        }
+
+        function clearTasksOnly() {
+            if(confirm("Deseja resetar o progresso das tarefas? Seus pontos não serão alterados.")) {
+                tasks = []; 
+                localStorage.setItem('app_tasks', JSON.stringify(tasks));
+                updateUI();
+                showToast("TAREFAS LIMPAS");
+            }
+        }
+
+        function restoreDefaultTasks() {
+            const defaults = [
+                { id: 1, title: 'Lavar louça', points: 10, isDaily: true, completed: false },
+                { id: 2, title: 'Limpar Robô', points: 10, isDaily: true, completed: false },
+                { id: 3, title: 'Estudar 1 Hora', points: 20, isDaily: true, completed: false },
+                { id: 4, title: 'Mamadeira Bebê', points: 10, isDaily: true, completed: false },
+                { id: 5, title: 'Colocar Bebê para Dormir', points: 20, isDaily: true, completed: false },
+                { id: 6, title: 'Dormir antes das 11H', points: 30, isDaily: true, completed: false },
+                { id: 7, title: 'Acordar até 7H', points: 30, isDaily: true, completed: false },
+                { id: 8, title: 'Treinar', points: 30, isDaily: true, completed: false },
+                { id: 9, title: 'Supermercado', points: 15, isDaily: true, completed: false }
+            ];
+            defaults.forEach(dt => {
+                if (!tasks.some(t => t.title === dt.title)) tasks.push({...dt, id: Math.random()});
+            });
             updateUI();
-            showToast(`+${t.points} Pontos!`, "success");
         }
 
-        // --- CRUD LOJA (RECUPERADO) ---
-        function createReward() {
-            const name = document.getElementById('newRewardName').value.trim();
-            const cost = parseInt(document.getElementById('newRewardCost').value);
-            if (name && cost > 0) {
-                rewards.unshift({ id: Date.now(), name, cost });
-                document.getElementById('newRewardName').value = '';
-                document.getElementById('newRewardCost').value = '';
-                renderStore();
-                localStorage.setItem('app_rewards', JSON.stringify(rewards));
-                showToast("Prêmio Cadastrado!");
+        function checkDailyReset() {
+            const today = new Date().toLocaleDateString();
+            if (lastReset !== today) {
+                tasks.forEach(t => { if(t.isDaily) t.completed = false; });
+                lastReset = today;
+                localStorage.setItem('app_last_reset', lastReset);
+                localStorage.setItem('app_tasks', JSON.stringify(tasks));
+                updateUI();
             }
         }
 
+        // --- Funções da Loja (RenderStore Atualizado com Ícones) ---
         function renderStore() {
             const container = document.getElementById('storeItems');
             container.innerHTML = rewards.map(r => {
                 const canAfford = score >= r.cost;
-                const icon = icons[r.name] || '🎁';
+                const iconName = taskIcons[r.name] || taskIcons['default_reward'];
                 return `
-                <div class="bg-zinc-800/30 p-5 rounded-[1.5rem] border border-zinc-800 hover:border-zinc-700 transition-all">
+                <div class="bg-zinc-800/30 p-5 rounded-2xl border border-zinc-800">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
-                            <span class="text-xl">${icon}</span>
-                            <span class="font-bold text-zinc-200 text-sm">${r.name}</span>
+                            <div class="text-orange-500/50 bg-zinc-900 p-2 rounded-xl border border-zinc-800">
+                                <i data-lucide="${iconName}"></i>
+                            </div>
+                            <span class="font-bold text-zinc-100 text-sm">${r.name}</span>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="editItem('reward', ${r.id})" class="text-zinc-600 hover:text-blue-400 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
-                            <button onclick="deleteItem('reward', ${r.id})" class="text-zinc-600 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-                        </div>
+                        <button onclick="deleteItem('reward', ${r.id})" class="text-zinc-600 p-2 hover:text-red-500 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </div>
-                    <button onclick="buyReward(${r.cost}, '${r.name}')" 
-                        ${!canAfford ? 'disabled' : ''}
-                        class="w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
-                        ${canAfford ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500 hover:text-black' : 'bg-zinc-800/50 text-zinc-600 border-transparent opacity-50 cursor-not-allowed'}">
-                        Resgatar • ${r.cost} pts
-                    </button>
+                    <button onclick="buyReward(${r.cost}, '${r.name}')" ${!canAfford ? 'disabled' : ''} class="w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${canAfford ? 'bg-orange-500 text-white border-orange-400 hover:bg-orange-600' : 'bg-zinc-800 text-zinc-600 border-transparent opacity-30 cursor-not-allowed'}">Resgatar • ${r.cost} pts</button>
                 </div>`;
             }).join('');
+            lucide.createIcons();
+        }
+
+        function toggleStore() { 
+            const m = document.getElementById('storeModal'); 
+            m.classList.toggle('opacity-0'); 
+            m.classList.toggle('pointer-events-none'); 
+            if(!m.classList.contains('opacity-0')) renderStore();
+        }
+
+        function createReward() {
+            const name = document.getElementById('newRewardName').value.trim();
+            const cost = parseInt(document.getElementById('newRewardCost').value);
+            if (name && cost) { rewards.unshift({id: Date.now(), name, cost}); renderStore(); }
         }
 
         function buyReward(cost, name) {
-            if (score >= cost) {
-                score -= cost;
-                updateUI();
-                showToast(`Resgatado: ${name}`, "success");
-            }
+            if (score >= cost) { score -= cost; updateUI(); renderStore(); showToast("RESGATADO!"); }
         }
 
-        // --- FUNÇÕES COMPARTILHADAS (EDIT/DELETE) ---
         function deleteItem(type, id) {
-            if (confirm("Deseja excluir permanentemente?")) {
+            if (confirm("Excluir?")) {
                 if (type === 'task') tasks = tasks.filter(x => x.id !== id);
                 else rewards = rewards.filter(x => x.id !== id);
                 updateUI();
+                if (type === 'reward') renderStore();
             }
         }
 
         function editItem(type, id) {
-            if (type === 'task') {
-                const t = tasks.find(x => x.id === id);
-                const nT = prompt("Novo título:", t.title);
-                const nP = prompt("Novos pontos:", t.points);
-                if (nT && nP) { t.title = nT; t.points = parseInt(nP); }
-            } else {
-                const r = rewards.find(x => x.id === id);
-                const nN = prompt("Novo nome:", r.name);
-                const nC = prompt("Novo custo:", r.cost);
-                if (nN && nC) { r.name = nN; r.cost = parseInt(nC); }
+            // Pequena correção: Verifica qual lista buscar (tarefas ou recompensas)
+            const list = type === 'task' ? tasks : rewards;
+            const item = list.find(x => x.id === id);
+            const currentName = type === 'task' ? item.title : item.name;
+            const n = prompt("Novo nome:", currentName);
+            if (n) { 
+                if(type === 'task') item.title = n; else item.name = n;
+                updateUI();
+                if (type === 'reward') renderStore();
             }
-            updateUI();
         }
 
-        // --- UTILITÁRIOS ---
-        function toggleStore() {
-            const m = document.getElementById('storeModal');
-            const open = m.classList.contains('pointer-events-none');
-            if (open) { m.classList.remove('opacity-0', 'pointer-events-none'); renderStore(); }
-            else { m.classList.add('opacity-0', 'pointer-events-none'); }
-        }
-
-        function showToast(msg, type = "success") {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.className = `fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all transform z-50 pointer-events-none opacity-100 translate-y-0 ${type === 'success' ? 'bg-orange-600' : 'bg-red-600'} text-white`;
-            setTimeout(() => { t.classList.replace('opacity-100', 'opacity-0'); t.classList.replace('translate-y-0', 'translate-y-20'); }, 2500);
-        }
-
-        function clearHistory() {
-            if(confirm("Reiniciar todo o progresso e dados?")) { localStorage.clear(); location.reload(); }
-        }
-
-        // Inicialização
         checkDailyReset();
-        setInterval(checkDailyReset, 60000);
+        setInterval(checkDailyReset, 60000); 
         updateUI();
     </script>
 </body>
