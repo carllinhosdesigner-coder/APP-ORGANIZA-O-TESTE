@@ -9,31 +9,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; touch-action: manipulation; }
         .score-glow { text-shadow: 0 0 20px rgba(249, 115, 22, 0.2); }
-        @keyframes pulse-orange {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); color: #fb923c; }
-            100% { transform: scale(1); }
+        
+        @keyframes check-pop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
         }
-        @keyframes slide-up {
-            0% { transform: translate(-50%, 100%); opacity: 0; }
-            100% { transform: translate(-50%, 0); opacity: 1; }
+        .check-anim { animation: check-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        .task-card { 
+            transition: transform 0.2s ease-out; 
+            position: relative; 
+            touch-action: pan-y; 
+            cursor: grab;
         }
-        .animate-score { animation: pulse-orange 0.3s ease-out; }
-        .conquest-card { 
-            position: fixed;
-            left: 50%;
-            bottom: 40px;
-            transform: translateX(-50%);
-            z-index: 100;
-            animation: slide-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+        .task-card:active { cursor: grabbing; }
+        
+        .swipe-bg { 
+            position: absolute; 
+            inset: 0; 
+            background: #16a34a; 
+            border-radius: 1rem; 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end; 
+            padding-right: 2rem; 
+            color: white; 
+            opacity: 0; 
+            transition: opacity 0.2s; 
         }
         
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
         .lucide { width: 20px; height: 20px; stroke-width: 2.5px; }
@@ -41,11 +48,15 @@
 </head>
 <body class="bg-[#0c0c0c] text-zinc-100 font-sans min-h-screen relative">
 
-    <div class="max-w-md mx-auto p-6 pb-24">
+    <div id="main-view" class="max-w-md mx-auto p-6 pb-24">
         <header class="mb-8 pt-6">
             <div class="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 shadow-2xl text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-600 to-orange-400"></div>
                 
+                <button onclick="toggleView('history')" class="absolute top-6 left-6 text-zinc-400 p-2.5 bg-zinc-800 rounded-full border border-zinc-700 active:scale-95 z-10">
+                    <i data-lucide="history"></i>
+                </button>
+
                 <button onclick="toggleStore()" class="absolute top-6 right-6 text-orange-500 p-2.5 bg-orange-500/10 rounded-full border border-orange-500/20 active:scale-95 z-10">
                     <i data-lucide="shopping-bag"></i>
                 </button>
@@ -53,12 +64,12 @@
                 <h1 class="text-[10px] uppercase tracking-[0.4em] text-zinc-500 font-black mb-1 mt-2">Performance Score</h1>
                 <div id="score" class="text-8xl font-black text-white tracking-tighter score-glow">0</div>
                 
-                <div class="mt-5 inline-flex flex-col items-center gap-2">
+                <div class="mt-5 inline-flex flex-col items-center gap-2 w-full">
                     <div class="px-5 py-2 rounded-full bg-orange-500/10 border border-orange-500/20">
-                        <span id="rank-name" class="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em]">Vagabundo</span>
+                        <span id="rank-name" class="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em]">Criança</span>
                     </div>
-                    <div class="w-32 h-1 bg-zinc-800 rounded-full mt-2 overflow-hidden">
-                        <div id="daily-progress" class="h-full bg-orange-500 transition-all duration-500" style="width: 0%"></div>
+                    <div class="w-full max-w-[150px] h-1.5 bg-zinc-800 rounded-full mt-2 overflow-hidden">
+                        <div id="daily-progress" class="h-full bg-orange-500 transition-all duration-700" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
@@ -74,304 +85,302 @@
                     <input type="checkbox" id="taskDaily" class="w-5 h-5 rounded border-zinc-800 bg-zinc-950 text-orange-600 focus:ring-0">
                     Tarefa Diária
                 </label>
-                <button onclick="addTask()" class="bg-white text-black px-8 py-3 rounded-xl font-black text-xs uppercase hover:bg-orange-500 hover:text-white transition-all">Salvar</button>
+                <button onclick="addTask()" class="bg-white text-black px-8 py-3 rounded-xl font-black text-xs uppercase hover:bg-orange-500 transition-all">Salvar</button>
             </div>
         </div>
 
         <div class="flex justify-between items-end mb-6 px-1">
-            <h2 class="text-xs font-black uppercase tracking-widest text-white">Quadro de Missões</h2>
-            <div class="flex gap-2">
-                <button onclick="restoreDefaultTasks()" class="text-[9px] bg-zinc-900 text-zinc-400 px-3 py-1.5 rounded-lg border border-zinc-800 font-bold uppercase transition-all">Padrões</button>
-                <button onclick="clearTasksOnly()" class="text-[9px] bg-zinc-900 text-zinc-700 px-3 py-1.5 rounded-lg border border-zinc-800 font-bold uppercase transition-all">Reset Tarefas</button>
-            </div>
+            <h2 class="text-xs font-black uppercase tracking-widest text-white">Missões Ativas</h2>
+            <button onclick="restoreDefaultTasks()" class="text-[9px] bg-zinc-900 text-zinc-400 px-3 py-1.5 rounded-lg border border-zinc-800 font-bold uppercase">Padrões</button>
         </div>
 
         <div id="taskList" class="space-y-4"></div>
     </div>
 
-    <div id="storeModal" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 backdrop-blur-xl opacity-0 pointer-events-none transition-all">
+    <div id="history-view" class="max-w-md mx-auto p-6 pb-24 hidden">
+        <header class="mb-8 pt-6 flex items-center justify-between">
+            <button onclick="toggleView('main')" class="text-zinc-400 p-2.5 bg-zinc-900 rounded-full border border-zinc-800"><i data-lucide="arrow-left"></i></button>
+            <h2 class="text-xs font-black uppercase tracking-widest text-white">Histórico de Hoje</h2>
+            <div class="w-10"></div>
+        </header>
+        <div id="historyList" class="space-y-4"></div>
+    </div>
+
+    <div id="storeModal" class="fixed inset-0 bg-black/95 z-[150] flex items-center justify-center p-4 backdrop-blur-xl opacity-0 pointer-events-none transition-all duration-300">
         <div class="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-sm shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
-            <div class="p-8 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
+            <div class="p-8 border-b border-zinc-800 flex justify-between items-center">
                 <div>
-                    <h2 class="text-xs font-black uppercase text-orange-500 mb-1">Mercado Pro</h2>
-                    <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Resgate Prêmios</p>
+                    <h2 class="text-xs font-black uppercase text-orange-500">Mercado Pro</h2>
+                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Resgate Recompensas</p>
                 </div>
-                <button onclick="toggleStore()" class="text-zinc-500 bg-zinc-800 p-2 rounded-full hover:text-white">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
+                <button onclick="toggleStore()" class="text-zinc-500 bg-zinc-800 p-2 rounded-full"><i data-lucide="x"></i></button>
             </div>
+
             <div class="p-6 bg-zinc-950/50 border-b border-zinc-800">
                 <div class="flex flex-col gap-2">
-                    <div class="flex gap-3">
-                        <input type="text" id="newRewardName" placeholder="Prêmio..." class="text-xs flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none">
-                        <input type="number" id="newRewardCost" placeholder="Pts" class="text-xs w-20 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none font-bold text-orange-500 text-center">
+                    <div class="flex gap-2">
+                        <input type="text" id="newRewardName" placeholder="Novo prêmio..." class="text-xs flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none">
+                        <input type="number" id="newRewardCost" placeholder="Pts" class="text-xs w-20 bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-3 focus:outline-none font-bold text-orange-500 text-center">
                     </div>
-                    <button onclick="createReward()" class="w-full bg-zinc-100 text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-colors">Cadastrar Recompensa</button>
+                    <button onclick="createReward()" class="w-full bg-zinc-100 text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 transition-colors">Cadastrar Recompensa</button>
                 </div>
             </div>
+            
             <div id="storeItems" class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1"></div>
         </div>
     </div>
 
-    <div id="conquestOverlay" class="z-[100] pointer-events-none"></div>
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-[10px] font-black tracking-widest shadow-2xl transition-all duration-300 z-50 pointer-events-none opacity-0 translate-y-20 bg-orange-600 text-white"></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-[10px] font-black tracking-widest shadow-2xl transition-all duration-300 z-[200] pointer-events-none opacity-0 translate-y-20 bg-orange-600 text-white"></div>
 
     <script>
-        // Atualizado com os novos ícones para as recompensas padrão
-        const taskIcons = {
-            'Lavar louça': 'utensils', 'Limpar Robô': 'cpu', 'Estudar 1 Hora': 'book-open',
-            'Mamadeira Bebê': 'baby', 'Colocar Bebê para Dormir': 'moon',
-            'Dormir antes das 11H': 'bed', 'Acordar até 7H': 'sunrise',
-            'Treinar': 'dumbbell', 'Supermercado': 'shopping-basket',
-            '1 Hora de Video game': 'gamepad-2', 
-            '1 Hora de Sono': 'bed', 
-            '1 Hora de Sossego': 'wind', 
-            'Passeio Solo': 'footprints', 
-            'Pedir Delivery': 'pizza',
-            'default_task': 'target', 'default_reward': 'trophy'
-        };
-
         let score = parseInt(localStorage.getItem('app_score')) || 0;
-        let lastReset = localStorage.getItem('app_last_reset') || "";
         let tasks = JSON.parse(localStorage.getItem('app_tasks')) || [];
-        
-        // Recompensas Padrão
-        const defaultRewards = [
-            { id: 101, name: '1 Hora de Video game', cost: 500 },
-            { id: 102, name: '1 Hora de Sono', cost: 500 },
-            { id: 103, name: '1 Hora de Sossego', cost: 500 },
-            { id: 104, name: 'Passeio Solo', cost: 500 },
-            { id: 105, name: 'Pedir Delivery', cost: 500 }
-        ];
-
-        // Lógica de Primeiro Acesso para a Loja
-        let savedRewards = localStorage.getItem('app_rewards');
-        let rewards = savedRewards ? JSON.parse(savedRewards) : defaultRewards;
-        
-        let lastRankIndex = -1;
+        let rewards = JSON.parse(localStorage.getItem('app_rewards')) || [];
 
         const ranks = [
-            { name: "Vagabundo", min: 0 },
-            { name: "Cidadão", min: 0.25 },
-            { name: "Orgulho", min: 0.50 },
-            { name: "Te respeito", min: 0.75 },
-            { name: "Monstro", min: 1.0 }
+            { name: "Criança", min: 0 },
+            { name: "Adolescente", min: 20 },
+            { name: "Jovem", min: 40 },
+            { name: "Adulto", min: 60 },
+            { name: "Sábio", min: 80 }
         ];
 
-        function updateUI() {
-            const totalTasks = tasks.length;
-            const completedToday = tasks.filter(t => t.completed).length;
-            const progress = totalTasks > 0 ? completedToday / totalTasks : 0;
-            
-            let currentRankIndex = 0;
-            for(let i = ranks.length - 1; i >= 0; i--) {
-                if(progress >= ranks[i].min) {
-                    currentRankIndex = i;
-                    break;
-                }
+        // --- RESET DE MEIA-NOITE ---
+        function checkDailyReset() {
+            const lastDate = localStorage.getItem('app_last_date');
+            const today = new Date().toLocaleDateString();
+            if (lastDate !== today) {
+                tasks.forEach(t => t.completed = false);
+                localStorage.setItem('app_last_date', today);
+                saveData();
             }
-
-            if (currentRankIndex > lastRankIndex && lastRankIndex !== -1) {
-                showConquest(ranks[currentRankIndex].name);
-            }
-            lastRankIndex = currentRankIndex;
-
-            document.getElementById('score').innerText = score;
-            document.getElementById('rank-name').innerText = ranks[currentRankIndex].name;
-            document.getElementById('daily-progress').style.width = `${progress * 100}%`;
-
-            const tList = document.getElementById('taskList');
-            tList.innerHTML = '';
-            tasks.forEach(t => {
-                const iconName = taskIcons[t.title] || taskIcons['default_task'];
-                const div = document.createElement('div');
-                div.className = `card-anim p-5 rounded-2xl border flex items-center justify-between ${t.completed ? 'bg-zinc-950 border-zinc-900 opacity-40 scale-[0.98]' : 'bg-zinc-900 border-zinc-800 shadow-lg'}`;
-                div.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="${t.completed ? 'text-zinc-700' : 'text-orange-500'} bg-zinc-950 p-3 rounded-xl border border-zinc-800">
-                            <i data-lucide="${iconName}"></i>
-                        </div>
-                        <div>
-                            <p class="font-bold text-sm ${t.completed ? 'line-through text-zinc-600' : 'text-zinc-100'}">${t.title}</p>
-                            <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">${t.points} Pts</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        ${!t.completed ? `
-                            <button onclick="editItem('task', ${t.id})" class="text-zinc-600 p-2"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                            <button onclick="deleteItem('task', ${t.id})" class="text-zinc-600 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                            <button onclick="completeTask(${t.id})" class="ml-2 bg-orange-600 text-white text-[10px] font-black px-5 py-2.5 rounded-xl uppercase">Check</button>
-                        ` : '<div class="text-orange-500/50 p-2"><i data-lucide="check-circle" class="w-6 h-6"></i></div>'}
-                    </div>
-                `;
-                tList.appendChild(div);
-            });
-
-            localStorage.setItem('app_score', score);
-            localStorage.setItem('app_tasks', JSON.stringify(tasks));
-            localStorage.setItem('app_rewards', JSON.stringify(rewards));
-            lucide.createIcons();
         }
 
-        function showConquest(rankName) {
-            setTimeout(() => {
-                const container = document.getElementById('conquestOverlay');
-                const card = document.createElement('div');
-                card.className = "conquest-card bg-white text-black px-6 py-4 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 border-2 border-orange-500";
-                card.innerHTML = `
-                    <div class="bg-orange-500 p-2 rounded-full text-white"><i data-lucide="medal"></i></div>
-                    <div>
-                        <p class="text-[10px] font-black uppercase text-zinc-400 mb-1">Evolução Diária</p>
-                        <p class="text-sm font-black uppercase">Você atingiu o nível "${rankName}"!</p>
-                    </div>
-                `;
-                container.appendChild(card);
-                lucide.createIcons();
-                setTimeout(() => { 
-                    card.style.opacity = '0'; 
-                    card.style.transition = 'opacity 0.5s ease';
-                    setTimeout(() => card.remove(), 500); 
-                }, 3000);
-            }, 800);
+        // --- ÍCONES ---
+        const taskIcons = {
+            'louça': 'utensils', 'robô': 'cpu', 'estudar': 'book-open',
+            'mamadeira': 'baby', 'dormir': 'moon', 'acordar': 'sunrise',
+            'treinar': 'dumbbell', 'mercado': 'shopping-basket', 'default': 'target'
+        };
+
+        function getIcon(title) {
+            const t = title.toLowerCase();
+            for (let key in taskIcons) { if (t.includes(key)) return taskIcons[key]; }
+            return taskIcons['default'];
+        }
+
+        // --- SWIPE (CHECK) ---
+        function setupSwipe(el, taskId) {
+            let startX = 0, currentX = 0, isDragging = false;
+            const threshold = -110;
+
+            const start = (e) => {
+                isDragging = true;
+                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                el.style.transition = 'none';
+            };
+
+            const move = (e) => {
+                if (!isDragging) return;
+                currentX = (e.type.includes('mouse') ? e.clientX : e.touches[0].clientX) - startX;
+                if (currentX < 0) {
+                    e.preventDefault();
+                    el.style.transform = `translateX(${currentX}px)`;
+                    el.parentElement.querySelector('.swipe-bg').style.opacity = Math.min(Math.abs(currentX) / 100, 1);
+                }
+            };
+
+            const end = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                el.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                if (currentX < threshold) {
+                    el.style.transform = `translateX(-110%)`;
+                    setTimeout(() => completeTask(taskId), 200);
+                } else {
+                    el.style.transform = `translateX(0)`;
+                    el.parentElement.querySelector('.swipe-bg').style.opacity = 0;
+                }
+                currentX = 0;
+            };
+
+            el.addEventListener('mousedown', start);
+            window.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', end);
+            el.addEventListener('touchstart', start, { passive: false });
+            el.addEventListener('touchmove', move, { passive: false });
+            el.addEventListener('touchend', end);
         }
 
         function completeTask(id) {
             const t = tasks.find(x => x.id === id);
+            if (!t) return;
             score += t.points;
             t.completed = true;
-            document.getElementById('score').classList.add('animate-score');
-            setTimeout(() => document.getElementById('score').classList.remove('animate-score'), 300);
-            updateUI();
-            showToast(`+${t.points} PONTOS`);
+            
+            const overlay = document.createElement('div');
+            overlay.className = "fixed inset-0 z-[250] flex items-center justify-center bg-black/40 pointer-events-none";
+            overlay.innerHTML = `<div class="check-anim bg-green-500 p-8 rounded-full text-white shadow-2xl"><i data-lucide="check" style="width:60px; height:60px"></i></div>`;
+            document.body.appendChild(overlay);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                overlay.remove();
+                updateUI();
+                showToast(`+${t.points} PONTOS`);
+            }, 600);
         }
 
-        function addTask() {
-            const title = document.getElementById('taskInput').value.trim();
-            const points = parseInt(document.getElementById('taskPoints').value) || 10;
-            const isDaily = document.getElementById('taskDaily').checked;
-            if (title) {
-                tasks.push({ id: Date.now(), title, points, isDaily, completed: false });
-                document.getElementById('taskInput').value = '';
-                document.getElementById('taskPoints').value = '';
+        function updateUI() {
+            const totalTasks = tasks.length;
+            const completedCount = tasks.filter(t => t.completed).length;
+            const progressPercent = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
+
+            const currentRank = [...ranks].reverse().find(r => progressPercent >= r.min) || ranks[0];
+            document.getElementById('rank-name').innerText = currentRank.name;
+            document.getElementById('daily-progress').style.width = `${progressPercent}%`;
+            document.getElementById('score').innerText = score;
+
+            const tList = document.getElementById('taskList');
+            const activeTasks = tasks.filter(t => !t.completed);
+            tList.innerHTML = '';
+
+            activeTasks.forEach(t => {
+                const container = document.createElement('div');
+                container.className = "relative overflow-hidden rounded-2xl";
+                container.innerHTML = `
+                    <div class="swipe-bg"><i data-lucide="check" class="w-8 h-8"></i></div>
+                    <div class="task-card p-5 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-between z-10" data-id="${t.id}">
+                        <div class="flex items-center gap-4 pointer-events-none select-none">
+                            <div class="text-orange-500 bg-zinc-950 p-3 rounded-xl border border-zinc-800"><i data-lucide="${getIcon(t.title)}"></i></div>
+                            <div><p class="font-bold text-sm text-zinc-100">${t.title}</p><p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">${t.points} Pts</p></div>
+                        </div>
+                        <button onclick="deleteItem('task', ${t.id})" class="text-zinc-700 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+                tList.appendChild(container);
+                setupSwipe(container.querySelector('.task-card'), t.id);
+            });
+            saveData();
+            lucide.createIcons();
+        }
+
+        // --- GESTÃO DA LOJA ---
+        function createReward() {
+            const name = document.getElementById('newRewardName').value.trim();
+            const cost = parseInt(document.getElementById('newRewardCost').value);
+            if (name && cost) {
+                rewards.unshift({ id: Date.now(), name, cost });
+                document.getElementById('newRewardName').value = '';
+                document.getElementById('newRewardCost').value = '';
+                renderStore();
+                saveData();
+                showToast("RECOMPENSA SALVA!");
+            }
+        }
+
+        function renderStore() {
+            const container = document.getElementById('storeItems');
+            container.innerHTML = rewards.map(r => `
+                <div class="bg-zinc-800/30 p-5 rounded-2xl border border-zinc-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="text-orange-500 bg-zinc-900 p-2 rounded-xl border border-zinc-800"><i data-lucide="trophy"></i></div>
+                            <span class="font-bold text-zinc-100 text-sm">${r.name}</span>
+                        </div>
+                        <button onclick="deleteItem('reward', ${r.id})" class="text-zinc-700 p-2 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                    <button onclick="buyReward(${r.cost})" class="w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${score >= r.cost ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-600 opacity-50'}">Resgatar • ${r.cost} pts</button>
+                </div>`).join('');
+            lucide.createIcons();
+        }
+
+        function buyReward(cost) {
+            if (score >= cost) { 
+                score -= cost; 
+                updateUI(); 
+                renderStore(); 
+                showToast("RESGATADO COM SUCESSO!"); 
+            }
+        }
+
+        function deleteItem(type, id) {
+            if(confirm("Excluir item permanentemente?")) {
+                if (type === 'task') tasks = tasks.filter(t => t.id !== id);
+                else {
+                    rewards = rewards.filter(r => r.id !== id);
+                    renderStore();
+                }
                 updateUI();
             }
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.classList.remove('opacity-0', 'translate-y-20');
-            t.classList.add('opacity-100', 'translate-y-0');
-            setTimeout(() => {
-                t.classList.remove('opacity-100', 'translate-y-0');
-                t.classList.add('opacity-0', 'translate-y-20');
-            }, 2000);
-        }
-
-        function clearTasksOnly() {
-            if(confirm("Deseja resetar o progresso das tarefas? Seus pontos não serão alterados.")) {
-                tasks = []; 
-                localStorage.setItem('app_tasks', JSON.stringify(tasks));
+        // --- UTILITÁRIOS ---
+        function addTask() {
+            const title = document.getElementById('taskInput').value.trim();
+            const points = parseInt(document.getElementById('taskPoints').value) || 10;
+            if (title) {
+                tasks.push({ id: Date.now(), title, points, completed: false });
+                document.getElementById('taskInput').value = '';
                 updateUI();
-                showToast("TAREFAS LIMPAS");
             }
         }
 
         function restoreDefaultTasks() {
             const defaults = [
-                { id: 1, title: 'Lavar louça', points: 10, isDaily: true, completed: false },
-                { id: 2, title: 'Limpar Robô', points: 10, isDaily: true, completed: false },
-                { id: 3, title: 'Estudar 1 Hora', points: 20, isDaily: true, completed: false },
-                { id: 4, title: 'Mamadeira Bebê', points: 10, isDaily: true, completed: false },
-                { id: 5, title: 'Colocar Bebê para Dormir', points: 20, isDaily: true, completed: false },
-                { id: 6, title: 'Dormir antes das 11H', points: 30, isDaily: true, completed: false },
-                { id: 7, title: 'Acordar até 7H', points: 30, isDaily: true, completed: false },
-                { id: 8, title: 'Treinar', points: 30, isDaily: true, completed: false },
-                { id: 9, title: 'Supermercado', points: 15, isDaily: true, completed: false }
+                { id: 1, title: 'Lavar louça', points: 10, completed: false },
+                { id: 2, title: 'Limpar Robô', points: 15, completed: false },
+                { id: 3, title: 'Estudar 1 Hora', points: 20, completed: false },
+                { id: 4, title: 'Mamadeira Bebê', points: 10, completed: false },
+                { id: 5, title: 'Treinar', points: 30, completed: false }
             ];
-            defaults.forEach(dt => {
-                if (!tasks.some(t => t.title === dt.title)) tasks.push({...dt, id: Math.random()});
-            });
+            defaults.forEach(dt => { if (!tasks.some(t => t.title === dt.title)) tasks.push({...dt, id: Date.now() + Math.random()}); });
             updateUI();
         }
 
-        function checkDailyReset() {
-            const today = new Date().toLocaleDateString();
-            if (lastReset !== today) {
-                tasks.forEach(t => { if(t.isDaily) t.completed = false; });
-                lastReset = today;
-                localStorage.setItem('app_last_reset', lastReset);
-                localStorage.setItem('app_tasks', JSON.stringify(tasks));
-                updateUI();
-            }
+        function toggleView(view) {
+            document.getElementById('main-view').classList.toggle('hidden', view === 'history');
+            document.getElementById('history-view').classList.toggle('hidden', view === 'main');
+            if(view === 'history') renderHistory(); else updateUI();
         }
 
-        // --- Funções da Loja (RenderStore Atualizado com Ícones) ---
-        function renderStore() {
-            const container = document.getElementById('storeItems');
-            container.innerHTML = rewards.map(r => {
-                const canAfford = score >= r.cost;
-                const iconName = taskIcons[r.name] || taskIcons['default_reward'];
-                return `
-                <div class="bg-zinc-800/30 p-5 rounded-2xl border border-zinc-800">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="text-orange-500/50 bg-zinc-900 p-2 rounded-xl border border-zinc-800">
-                                <i data-lucide="${iconName}"></i>
-                            </div>
-                            <span class="font-bold text-zinc-100 text-sm">${r.name}</span>
-                        </div>
-                        <button onclick="deleteItem('reward', ${r.id})" class="text-zinc-600 p-2 hover:text-red-500 transition-colors">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    <button onclick="buyReward(${r.cost}, '${r.name}')" ${!canAfford ? 'disabled' : ''} class="w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${canAfford ? 'bg-orange-500 text-white border-orange-400 hover:bg-orange-600' : 'bg-zinc-800 text-zinc-600 border-transparent opacity-30 cursor-not-allowed'}">Resgatar • ${r.cost} pts</button>
-                </div>`;
-            }).join('');
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            const completed = tasks.filter(t => t.completed);
+            historyList.innerHTML = completed.length ? '' : '<p class="text-center text-zinc-600 py-10 text-xs font-bold uppercase tracking-widest">Vazio</p>';
+            completed.forEach(t => {
+                const div = document.createElement('div');
+                div.className = "p-5 rounded-2xl bg-zinc-950 border border-zinc-900 flex items-center justify-between opacity-80";
+                div.innerHTML = `<div class="flex items-center gap-4"><div class="text-green-500 bg-zinc-900 p-3 rounded-xl border border-zinc-800"><i data-lucide="check-circle"></i></div><div><p class="font-bold text-sm text-zinc-400 line-through">${t.title}</p><p class="text-[9px] font-black text-green-600 uppercase tracking-widest">+${t.points} Pts</p></div></div><button onclick="recoverTask(${t.id})" class="bg-zinc-800 text-zinc-100 p-3 rounded-xl hover:bg-orange-600 transition-colors"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>`;
+                historyList.appendChild(div);
+            });
             lucide.createIcons();
         }
 
-        function toggleStore() { 
-            const m = document.getElementById('storeModal'); 
-            m.classList.toggle('opacity-0'); 
-            m.classList.toggle('pointer-events-none'); 
+        function recoverTask(id) {
+            const t = tasks.find(x => x.id === id);
+            if (t) { score -= t.points; t.completed = false; renderHistory(); updateUI(); }
+        }
+
+        function toggleStore() {
+            const m = document.getElementById('storeModal');
+            m.classList.toggle('opacity-0'); m.classList.toggle('pointer-events-none');
             if(!m.classList.contains('opacity-0')) renderStore();
         }
 
-        function createReward() {
-            const name = document.getElementById('newRewardName').value.trim();
-            const cost = parseInt(document.getElementById('newRewardCost').value);
-            if (name && cost) { rewards.unshift({id: Date.now(), name, cost}); renderStore(); }
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-20'); t.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-0'); t.classList.add('opacity-0', 'translate-y-20'); }, 2000);
         }
 
-        function buyReward(cost, name) {
-            if (score >= cost) { score -= cost; updateUI(); renderStore(); showToast("RESGATADO!"); }
-        }
-
-        function deleteItem(type, id) {
-            if (confirm("Excluir?")) {
-                if (type === 'task') tasks = tasks.filter(x => x.id !== id);
-                else rewards = rewards.filter(x => x.id !== id);
-                updateUI();
-                if (type === 'reward') renderStore();
-            }
-        }
-
-        function editItem(type, id) {
-            // Pequena correção: Verifica qual lista buscar (tarefas ou recompensas)
-            const list = type === 'task' ? tasks : rewards;
-            const item = list.find(x => x.id === id);
-            const currentName = type === 'task' ? item.title : item.name;
-            const n = prompt("Novo nome:", currentName);
-            if (n) { 
-                if(type === 'task') item.title = n; else item.name = n;
-                updateUI();
-                if (type === 'reward') renderStore();
-            }
+        function saveData() {
+            localStorage.setItem('app_score', score);
+            localStorage.setItem('app_tasks', JSON.stringify(tasks));
+            localStorage.setItem('app_rewards', JSON.stringify(rewards));
         }
 
         checkDailyReset();
-        setInterval(checkDailyReset, 60000); 
         updateUI();
     </script>
 </body>
