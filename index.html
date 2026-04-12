@@ -119,10 +119,10 @@
             <div class="p-6 bg-zinc-950/50 border-b border-zinc-800">
                 <div class="flex flex-col gap-2">
                     <div class="flex gap-2">
-                        <input type="text" id="newRewardName" placeholder="Novoa recompensa..." class="text-xs flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none">
+                        <input type="text" id="newRewardName" placeholder="Nova recompensa..." class="text-xs flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none">
                         <input type="number" id="newRewardCost" placeholder="Pts" class="text-xs w-20 bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-3 focus:outline-none font-bold text-orange-500 text-center">
                     </div>
-                    <button onclick="createReward()" class="w-full bg-zinc-100 text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 transition-colors">Cadastrar Recompensa</button>
+                    <button onclick="createReward()" class="w-full bg-zinc-100 text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 transition-colors">Criar Recompensa</button>
                 </div>
             </div>
             
@@ -149,7 +149,18 @@
         function checkDailyReset() {
             const lastDate = localStorage.getItem('app_last_date');
             const today = new Date().toLocaleDateString();
+
             if (lastDate !== today) {
+                // Alteração 3: carregar tarefas padrão todo dia à meia-noite
+                restoreDefaultTasks();
+
+                // Alteração 2: zerar score toda domingo à meia-noite
+                const dayOfWeek = new Date().getDay(); // 0 = domingo
+                if (dayOfWeek === 0) {
+                    score = 0;
+                    localStorage.setItem('app_score', score);
+                }
+
                 tasks.forEach(t => t.completed = false);
                 localStorage.setItem('app_last_date', today);
                 saveData();
@@ -158,9 +169,43 @@
 
         // --- ÍCONES ---
         const taskIcons = {
+            // Originais
             'louça': 'utensils', 'robô': 'bot', 'estudar': 'book-open',
             'bebê': 'baby', 'dormir': 'moon', 'acordar': 'sun',
-            'treinar': 'dumbbell', 'mercado': 'shopping-basket', 'default': 'target', 'carro': 'car', 'lixo': 'trash', 'desenhar': 'brush', 'Banheiro': 'toilet'
+            'treinar': 'dumbbell', 'mercado': 'shopping-basket', 'carro': 'car',
+            'lixo': 'trash', 'desenhar': 'brush', 'banheiro': 'toilet',
+            // Roupas / lavanderia
+            'roupa': 'shirt', 'roupas': 'shirt', 'lavar roupa': 'shirt',
+            'passar roupa': 'shirt', 'dobrar': 'shirt',
+            // Leitura
+            'leitura': 'book', 'ler': 'book', 'livro': 'book',
+            // Alimentação
+            'comida': 'chef-hat', 'cozinhar': 'chef-hat', 'almoço': 'chef-hat',
+            'jantar': 'chef-hat', 'café': 'coffee', 'mamadeira': 'baby',
+            // Casa / limpeza
+            'limpar': 'sparkles', 'limpeza': 'sparkles', 'varrer': 'sparkles',
+            'organizar': 'layout-list', 'organização': 'layout-list',
+            'compras': 'shopping-cart', 'feira': 'shopping-cart',
+            // Saúde / corpo
+            'remédio': 'pill', 'medicamento': 'pill', 'vitamina': 'pill',
+            'médico': 'stethoscope', 'consulta': 'stethoscope',
+            'banho': 'shower-head', 'higiene': 'shower-head',
+            // Finanças
+            'pagar': 'receipt', 'conta': 'receipt', 'boleto': 'receipt',
+            'dinheiro': 'wallet', 'financeiro': 'wallet',
+            // Trabalho / produtividade
+            'trabalho': 'briefcase', 'reunião': 'users', 'email': 'mail',
+            'ligar': 'phone', 'ligação': 'phone',
+            'tarefa': 'check-square', 'meta': 'flag',
+            // Animais de estimação
+            'pet': 'paw-print', 'cachorro': 'paw-print', 'gato': 'paw-print',
+            'animal': 'paw-print',
+            // Lazer / outros
+            'música': 'music', 'jogar': 'gamepad-2', 'jogo': 'gamepad-2',
+            'filme': 'tv', 'série': 'tv', 'passear': 'map-pin',
+            'academia': 'dumbbell', 'meditar': 'heart',
+            // Default
+            'default': 'target'
         };
 
         function getIcon(title) {
@@ -217,18 +262,9 @@
             if (!t) return;
             score += t.points;
             t.completed = true;
-            
-            const overlay = document.createElement('div');
-            overlay.className = "fixed inset-0 z-[250] flex items-center justify-center bg-black/40 pointer-events-none";
-            overlay.innerHTML = `<div class="check-anim bg-green-500 p-8 rounded-full text-white shadow-2xl"><i data-lucide="check" style="width:60px; height:60px"></i></div>`;
-            document.body.appendChild(overlay);
-            lucide.createIcons();
-
-            setTimeout(() => {
-                overlay.remove();
-                updateUI();
-                showToast(`+${t.points} PONTOS`);
-            }, 600);
+            // Alteração 1: overlay de check removido
+            updateUI();
+            showToast(`+${t.points} PONTOS`);
         }
 
         function updateUI() {
@@ -381,7 +417,7 @@
 
         function showToast(msg) {
             const t = document.getElementById('toast'); t.innerText = msg;
-            t.classList.remove('opacity-0', 'translate-y-20'); t.classList.add('opacity-90', 'translate-y-0');
+            t.classList.remove('opacity-0', 'translate-y-20'); t.classList.add('opacity-100', 'translate-y-0');
             setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-0'); t.classList.add('opacity-0', 'translate-y-20'); }, 2000);
         }
 
