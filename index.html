@@ -91,7 +91,14 @@
 
         <div class="flex justify-between items-end mb-6 px-1">
             <h2 class="text-xs font-black uppercase tracking-widest text-white">Tarefas</h2>
-            <button type="button" onclick="restoreDefaultTasks()" class="relative z-10 cursor-pointer text-[10px] bg-zinc-900 text-zinc-400 px-4 py-3 rounded-lg border border-zinc-800 font-bold uppercase active:scale-95 transition-all">Carregar Padrões</button>
+            <button
+                id="btnRestoreDefaults"
+                type="button"
+                onclick="restoreDefaultTasks()"
+                style="-webkit-tap-highlight-color: transparent; touch-action: manipulation; position: relative; z-index: 10; cursor: pointer;"
+                class="text-[10px] bg-zinc-900 text-zinc-400 px-4 py-3 rounded-lg border border-zinc-800 font-bold uppercase active:scale-95 transition-all">
+                Carregar Padrões
+            </button>
         </div>
 
         <div id="taskList" class="space-y-4"></div>
@@ -151,11 +158,13 @@
             const today = new Date().toLocaleDateString();
 
             if (lastDate !== today) {
-                // Alteração 3: carregar tarefas padrão todo dia à meia-noite
-                restoreDefaultTasks();
+                const defaultsLoadedDate = localStorage.getItem('app_defaults_loaded');
+                if (defaultsLoadedDate !== today) {
+                    restoreDefaultTasks();
+                    localStorage.setItem('app_defaults_loaded', today);
+                }
 
-                // Alteração 2: zerar score toda domingo à meia-noite
-                const dayOfWeek = new Date().getDay(); // 0 = domingo
+                const dayOfWeek = new Date().getDay();
                 if (dayOfWeek === 0) {
                     score = 0;
                     localStorage.setItem('app_score', score);
@@ -167,44 +176,47 @@
             }
         }
 
+        // --- VISIBILIDADE DO BOTÃO CARREGAR PADRÕES ---
+        function updateRestoreButton() {
+            const btn = document.getElementById('btnRestoreDefaults');
+            const today = new Date().toLocaleDateString();
+            const defaultsLoadedDate = localStorage.getItem('app_defaults_loaded');
+            if (defaultsLoadedDate === today) {
+                btn.style.visibility = 'hidden';
+                btn.style.pointerEvents = 'none';
+            } else {
+                btn.style.visibility = 'visible';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+
         // --- ÍCONES ---
         const taskIcons = {
-            // Originais
             'louça': 'utensils', 'robô': 'bot', 'estudar': 'book-open',
             'bebê': 'baby', 'dormir': 'moon', 'acordar': 'sun',
             'treinar': 'dumbbell', 'mercado': 'shopping-basket', 'carro': 'car',
             'lixo': 'trash', 'desenhar': 'brush', 'banheiro': 'toilet',
-            // Roupas / lavanderia
             'roupa': 'shirt', 'roupas': 'shirt', 'lavar roupa': 'shirt',
             'passar roupa': 'shirt', 'dobrar': 'shirt',
-            // Leitura
             'leitura': 'book', 'ler': 'book', 'livro': 'book',
-            // Alimentação
             'comida': 'chef-hat', 'cozinhar': 'chef-hat', 'almoço': 'chef-hat',
             'jantar': 'chef-hat', 'café': 'coffee', 'mamadeira': 'baby',
-            // Casa / limpeza
             'limpar': 'sparkles', 'limpeza': 'sparkles', 'varrer': 'sparkles',
             'organizar': 'layout-list', 'organização': 'layout-list',
             'compras': 'shopping-cart', 'feira': 'shopping-cart',
-            // Saúde / corpo
             'remédio': 'pill', 'medicamento': 'pill', 'vitamina': 'pill',
             'médico': 'stethoscope', 'consulta': 'stethoscope',
             'banho': 'shower-head', 'higiene': 'shower-head',
-            // Finanças
             'pagar': 'receipt', 'conta': 'receipt', 'boleto': 'receipt',
             'dinheiro': 'wallet', 'financeiro': 'wallet',
-            // Trabalho / produtividade
             'trabalho': 'briefcase', 'reunião': 'users', 'email': 'mail',
             'ligar': 'phone', 'ligação': 'phone',
             'tarefa': 'check-square', 'meta': 'flag',
-            // Animais de estimação
             'pet': 'paw-print', 'cachorro': 'paw-print', 'gato': 'paw-print',
             'animal': 'paw-print',
-            // Lazer / outros
             'música': 'music', 'jogar': 'gamepad-2', 'jogo': 'gamepad-2',
             'filme': 'tv', 'série': 'tv', 'passear': 'map-pin',
             'academia': 'dumbbell', 'meditar': 'heart',
-            // Default
             'default': 'target'
         };
 
@@ -262,7 +274,6 @@
             if (!t) return;
             score += t.points;
             t.completed = true;
-            // Alteração 1: overlay de check removido
             updateUI();
             showToast(`+${t.points} PONTOS`);
         }
@@ -298,6 +309,7 @@
                 setupSwipe(container.querySelector('.task-card'), t.id);
             });
             saveData();
+            updateRestoreButton();
             lucide.createIcons();
         }
 
@@ -382,6 +394,7 @@
                 { id: 16, title: 'Lavar Roupas', points: 20, completed: false },
             ];
             defaults.forEach(dt => { if (!tasks.some(t => t.title === dt.title)) tasks.push({...dt, id: Date.now() + Math.random()}); });
+            localStorage.setItem('app_defaults_loaded', new Date().toLocaleDateString());
             updateUI();
         }
 
