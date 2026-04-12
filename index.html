@@ -11,7 +11,7 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; touch-action: manipulation; }
         .score-glow { text-shadow: 0 0 20px rgba(249, 115, 22, 0.2); }
-        
+
         @keyframes check-pop {
             0% { transform: scale(0); opacity: 0; }
             50% { transform: scale(1.2); }
@@ -19,31 +19,108 @@
         }
         .check-anim { animation: check-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
-        .task-card { 
-            transition: transform 0.2s ease-out; 
-            position: relative; 
-            touch-action: pan-y; 
+        .task-card {
+            transition: transform 0.2s ease-out;
+            position: relative;
+            touch-action: pan-y;
             cursor: grab;
         }
         .task-card:active { cursor: grabbing; }
-        
-        .swipe-bg { 
-            position: absolute; 
-            inset: 0; 
-            background: #16a34a; 
-            border-radius: 1rem; 
-            display: flex; 
-            align-items: center; 
-            justify-content: flex-end; 
-            padding-right: 2rem; 
-            color: white; 
-            opacity: 0; 
-            transition: opacity 0.2s; 
+
+        .swipe-bg {
+            position: absolute;
+            inset: 0;
+            background: #16a34a;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 2rem;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
-        
+
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
         .lucide { width: 20px; height: 20px; stroke-width: 2.5px; }
+
+        /* --- BOTÃO INICIAR --- */
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.6; }
+            70% { transform: scale(1.55); opacity: 0; }
+            100% { transform: scale(1.55); opacity: 0; }
+        }
+        @keyframes pulse-ring2 {
+            0% { transform: scale(1); opacity: 0.3; }
+            70% { transform: scale(1.9); opacity: 0; }
+            100% { transform: scale(1.9); opacity: 0; }
+        }
+        @keyframes btn-breathe {
+            0%, 100% { box-shadow: 0 0 32px 8px rgba(249,115,22,0.35); }
+            50% { box-shadow: 0 0 64px 20px rgba(249,115,22,0.6); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(28px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fade-out-scale {
+            0% { opacity: 1; transform: scale(1); }
+            60% { opacity: 0; transform: scale(1.18); }
+            100% { opacity: 0; transform: scale(1.18); }
+        }
+
+        #start-screen {
+            animation: fade-in-up 0.6s ease both;
+        }
+        .start-btn-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 3s ease-in-out infinite;
+        }
+        .start-btn-wrap .ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background: rgba(249,115,22,0.45);
+            animation: pulse-ring 2.2s ease-out infinite;
+        }
+        .start-btn-wrap .ring2 {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background: rgba(249,115,22,0.2);
+            animation: pulse-ring2 2.2s ease-out infinite 0.4s;
+        }
+        #btn-start {
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            animation: btn-breathe 2.2s ease-in-out infinite;
+        }
+        #btn-start:active { transform: scale(0.96); }
+
+        .start-exit {
+            animation: fade-out-scale 0.45s ease forwards !important;
+        }
+
+        /* --- ANIMAÇÃO DE ENTRADA DOS CARDS --- */
+        @keyframes card-enter {
+            from { opacity: 0; transform: translateY(32px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card-animated {
+            opacity: 0;
+            animation: card-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
     </style>
 </head>
 <body class="bg-[#0c0c0c] text-zinc-100 font-sans min-h-screen relative">
@@ -52,7 +129,7 @@
         <header class="mb-8 pt-6">
             <div class="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 shadow-2xl text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-600 to-orange-400"></div>
-                
+
                 <button onclick="toggleView('history')" class="absolute top-6 left-6 text-zinc-400 p-2.5 bg-zinc-800 rounded-full border border-zinc-700 active:scale-95 z-10">
                     <i data-lucide="history"></i>
                 </button>
@@ -63,7 +140,7 @@
 
                 <h1 class="text-[10px] uppercase tracking-[0.4em] text-zinc-500 font-black mb-1 mt-2">Performance Score</h1>
                 <div id="score" class="text-8xl font-black text-white tracking-tighter score-glow">0</div>
-                
+
                 <div class="mt-5 inline-flex flex-col items-center gap-2 w-full">
                     <div class="px-5 py-2 rounded-full bg-orange-500/10 border border-orange-500/20">
                         <span id="rank-name" class="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em]">Criança</span>
@@ -91,14 +168,22 @@
 
         <div class="flex justify-between items-end mb-6 px-1">
             <h2 class="text-xs font-black uppercase tracking-widest text-white">Tarefas</h2>
-            <button
-                id="btnRestoreDefaults"
-                type="button"
-                onclick="restoreDefaultTasks()"
-                style="-webkit-tap-highlight-color: transparent; touch-action: manipulation; position: relative; z-index: 10; cursor: pointer;"
-                class="text-[10px] bg-zinc-900 text-zinc-400 px-4 py-3 rounded-lg border border-zinc-800 font-bold uppercase active:scale-95 transition-all">
-                Carregar Padrões
-            </button>
+        </div>
+
+        <!-- Tela de início do dia -->
+        <div id="start-screen" class="hidden flex-col items-center justify-center py-16 gap-8">
+            <div class="text-center space-y-2">
+                <p class="text-[10px] uppercase tracking-[0.4em] text-zinc-500 font-black">Pronto para hoje?</p>
+                <p class="text-zinc-400 text-sm font-bold">Toque para carregar suas tarefas</p>
+            </div>
+            <div class="start-btn-wrap">
+                <div class="ring"></div>
+                <div class="ring2"></div>
+                <button id="btn-start" class="bg-orange-500 text-white font-black text-xl uppercase tracking-widest px-14 py-6 rounded-full border-2 border-orange-400">
+                    INICIAR
+                </button>
+            </div>
+            <p class="text-zinc-700 text-[10px] uppercase tracking-widest font-bold">Novo dia. Nova chance.</p>
         </div>
 
         <div id="taskList" class="space-y-4"></div>
@@ -132,7 +217,7 @@
                     <button onclick="createReward()" class="w-full bg-zinc-100 text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 transition-colors">Criar Recompensa</button>
                 </div>
             </div>
-            
+
             <div id="storeItems" class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1"></div>
         </div>
     </div>
@@ -152,17 +237,31 @@
             { name: "Sábio", min: 80 }
         ];
 
+        // --- BOTÃO INICIAR ---
+        const btnStart = document.getElementById('btn-start');
+        btnStart.addEventListener('click', handleStart);
+        btnStart.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            handleStart();
+        });
+
+        function handleStart() {
+            const screen = document.getElementById('start-screen');
+            screen.classList.add('start-exit');
+            setTimeout(() => {
+                screen.classList.add('hidden');
+                screen.classList.remove('flex', 'start-exit');
+                restoreDefaultTasks(true);
+            }, 420);
+        }
+
         // --- RESET DE MEIA-NOITE ---
         function checkDailyReset() {
             const lastDate = localStorage.getItem('app_last_date');
             const today = new Date().toLocaleDateString();
 
             if (lastDate !== today) {
-                const defaultsLoadedDate = localStorage.getItem('app_defaults_loaded');
-                if (defaultsLoadedDate !== today) {
-                    restoreDefaultTasks();
-                    localStorage.setItem('app_defaults_loaded', today);
-                }
+                tasks.forEach(t => t.completed = false);
 
                 const dayOfWeek = new Date().getDay();
                 if (dayOfWeek === 0) {
@@ -170,23 +269,9 @@
                     localStorage.setItem('app_score', score);
                 }
 
-                tasks.forEach(t => t.completed = false);
+                localStorage.removeItem('app_defaults_loaded');
                 localStorage.setItem('app_last_date', today);
                 saveData();
-            }
-        }
-
-        // --- VISIBILIDADE DO BOTÃO CARREGAR PADRÕES ---
-        function updateRestoreButton() {
-            const btn = document.getElementById('btnRestoreDefaults');
-            const today = new Date().toLocaleDateString();
-            const defaultsLoadedDate = localStorage.getItem('app_defaults_loaded');
-            if (defaultsLoadedDate === today) {
-                btn.style.visibility = 'hidden';
-                btn.style.pointerEvents = 'none';
-            } else {
-                btn.style.visibility = 'visible';
-                btn.style.pointerEvents = 'auto';
             }
         }
 
@@ -278,7 +363,7 @@
             showToast(`+${t.points} PONTOS`);
         }
 
-        function updateUI() {
+        function updateUI(animate) {
             const totalTasks = tasks.length;
             const completedCount = tasks.filter(t => t.completed).length;
             const progressPercent = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
@@ -292,9 +377,26 @@
             const activeTasks = tasks.filter(t => !t.completed);
             tList.innerHTML = '';
 
-            activeTasks.forEach(t => {
+            // Mostra tela de início se padrões ainda não foram carregados hoje
+            const today = new Date().toLocaleDateString();
+            const defaultsLoaded = localStorage.getItem('app_defaults_loaded') === today;
+            const startScreen = document.getElementById('start-screen');
+
+            if (!defaultsLoaded && activeTasks.length === 0) {
+                startScreen.classList.remove('hidden');
+                startScreen.classList.add('flex');
+            } else {
+                startScreen.classList.add('hidden');
+                startScreen.classList.remove('flex');
+            }
+
+            activeTasks.forEach((t, i) => {
                 const container = document.createElement('div');
                 container.className = "relative overflow-hidden rounded-2xl";
+                if (animate) {
+                    container.classList.add('card-animated');
+                    container.style.animationDelay = `${i * 60}ms`;
+                }
                 container.innerHTML = `
                     <div class="swipe-bg"><i data-lucide="check" class="w-8 h-8"></i></div>
                     <div class="task-card p-5 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-between z-10" data-id="${t.id}">
@@ -308,8 +410,8 @@
                 tList.appendChild(container);
                 setupSwipe(container.querySelector('.task-card'), t.id);
             });
+
             saveData();
-            updateRestoreButton();
             lucide.createIcons();
         }
 
@@ -344,11 +446,11 @@
         }
 
         function buyReward(cost) {
-            if (score >= cost) { 
-                score -= cost; 
-                updateUI(); 
-                renderStore(); 
-                showToast("RESGATADO COM SUCESSO!"); 
+            if (score >= cost) {
+                score -= cost;
+                updateUI();
+                renderStore();
+                showToast("RESGATADO COM SUCESSO!");
             }
         }
 
@@ -374,34 +476,38 @@
             }
         }
 
-        function restoreDefaultTasks() {
+        function restoreDefaultTasks(animate) {
             const defaults = [
-                { id: 1, title: 'Lavar louças', points: 10, completed: false },
-                { id: 2, title: 'Limpar Robô', points: 15, completed: false },
-                { id: 3, title: 'Estudar por 1 Hora', points: 20, completed: false },
-                { id: 4, title: 'Mamadeira Bebê', points: 10, completed: false },
-                { id: 5, title: 'Treinar', points: 25, completed: false },
-                { id: 6, title: 'Lavar Carro', points: 35, completed: false },
-                { id: 7, title: 'Tirar Lixo', points: 15, completed: false },
-                { id: 8, title: 'Comida Bebê', points: 15, completed: false },
-                { id: 9, title: 'Desenhar', points: 20, completed: false },
-                { id: 10, title: 'Ninar Bebê', points: 25, completed: false },
-                { id: 11, title: 'Acordar até 7H', points: 15, completed: false },
-                { id: 12, title: 'Dormir antes das 11H', points: 10, completed: false },
-                { id: 13, title: 'Supermercado', points: 20, completed: false },
-                { id: 14, title: 'Passar Roupas', points: 30, completed: false },
-                { id: 15, title: 'Banho do Bebê', points: 30, completed: false },
-                { id: 16, title: 'Lavar Roupas', points: 20, completed: false },
+                { title: 'Lavar louças', points: 10 },
+                { title: 'Limpar Robô', points: 15 },
+                { title: 'Estudar por 1 Hora', points: 20 },
+                { title: 'Mamadeira Bebê', points: 10 },
+                { title: 'Treinar', points: 25 },
+                { title: 'Lavar Carro', points: 35 },
+                { title: 'Tirar Lixo', points: 15 },
+                { title: 'Comida Bebê', points: 15 },
+                { title: 'Desenhar', points: 20 },
+                { title: 'Ninar Bebê', points: 25 },
+                { title: 'Acordar até 7H', points: 15 },
+                { title: 'Dormir antes das 11H', points: 10 },
+                { title: 'Supermercado', points: 20 },
+                { title: 'Passar Roupas', points: 30 },
+                { title: 'Banho do Bebê', points: 30 },
+                { title: 'Lavar Roupas', points: 20 },
             ];
-            defaults.forEach(dt => { if (!tasks.some(t => t.title === dt.title)) tasks.push({...dt, id: Date.now() + Math.random()}); });
+            defaults.forEach(dt => {
+                if (!tasks.some(t => t.title === dt.title)) {
+                    tasks.push({ id: Date.now() + Math.random(), title: dt.title, points: dt.points, completed: false });
+                }
+            });
             localStorage.setItem('app_defaults_loaded', new Date().toLocaleDateString());
-            updateUI();
+            updateUI(animate);
         }
 
         function toggleView(view) {
             document.getElementById('main-view').classList.toggle('hidden', view === 'history');
             document.getElementById('history-view').classList.toggle('hidden', view === 'main');
-            if(view === 'history') renderHistory(); else updateUI();
+            if (view === 'history') renderHistory(); else updateUI();
         }
 
         function renderHistory() {
@@ -425,7 +531,7 @@
         function toggleStore() {
             const m = document.getElementById('storeModal');
             m.classList.toggle('opacity-0'); m.classList.toggle('pointer-events-none');
-            if(!m.classList.contains('opacity-0')) renderStore();
+            if (!m.classList.contains('opacity-0')) renderStore();
         }
 
         function showToast(msg) {
