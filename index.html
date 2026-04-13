@@ -45,7 +45,6 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
         .lucide { width: 20px; height: 20px; stroke-width: 2.5px; }
 
-        /* --- BOTÃO INICIAR --- */
         @keyframes pulse-ring {
             0% { transform: scale(1); opacity: 0.6; }
             70% { transform: scale(1.55); opacity: 0; }
@@ -74,9 +73,8 @@
             100% { opacity: 0; transform: scale(1.18); }
         }
 
-        #start-screen {
-            animation: fade-in-up 0.6s ease both;
-        }
+        #start-screen { animation: fade-in-up 0.6s ease both; }
+
         .start-btn-wrap {
             position: relative;
             display: inline-flex;
@@ -85,34 +83,24 @@
             animation: float 3s ease-in-out infinite;
         }
         .start-btn-wrap .ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 9999px;
+            position: absolute; inset: 0; border-radius: 9999px;
             background: rgba(249,115,22,0.45);
             animation: pulse-ring 2.2s ease-out infinite;
         }
         .start-btn-wrap .ring2 {
-            position: absolute;
-            inset: 0;
-            border-radius: 9999px;
+            position: absolute; inset: 0; border-radius: 9999px;
             background: rgba(249,115,22,0.2);
             animation: pulse-ring2 2.2s ease-out infinite 0.4s;
         }
         #btn-start {
-            position: relative;
-            z-index: 2;
-            cursor: pointer;
+            position: relative; z-index: 2; cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
             animation: btn-breathe 2.2s ease-in-out infinite;
         }
         #btn-start:active { transform: scale(0.96); }
+        .start-exit { animation: fade-out-scale 0.45s ease forwards !important; }
 
-        .start-exit {
-            animation: fade-out-scale 0.45s ease forwards !important;
-        }
-
-        /* --- ANIMAÇÃO DE ENTRADA DOS CARDS --- */
         @keyframes card-enter {
             from { opacity: 0; transform: translateY(32px); }
             to { opacity: 1; transform: translateY(0); }
@@ -121,26 +109,154 @@
             opacity: 0;
             animation: card-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
+
+        @keyframes border-glow {
+            0%, 100% { box-shadow: 0 0 8px 1px rgba(34,197,94,0.25), inset 0 0 8px 1px rgba(34,197,94,0.05); }
+            50% { box-shadow: 0 0 18px 4px rgba(34,197,94,0.45), inset 0 0 12px 2px rgba(34,197,94,0.1); }
+        }
+        #btn-add-task {
+            animation: border-glow 2.8s ease-in-out infinite;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        #btn-add-task:active { transform: scale(0.97); }
+
+        @keyframes modal-in {
+            from { opacity: 0; transform: translateY(24px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes modal-out {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to   { opacity: 0; transform: translateY(24px) scale(0.98); }
+        }
+        @keyframes overlay-in  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes overlay-out { from { opacity: 1; } to { opacity: 0; } }
+
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 140;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex; align-items: flex-end; justify-content: center;
+        }
+        .modal-overlay.is-hidden { display: none; }
+        .modal-overlay.anim-in  { animation: overlay-in  0.28s ease forwards; }
+        .modal-overlay.anim-out { animation: overlay-out 0.22s ease forwards; }
+
+        .modal-sheet {
+            width: 100%; max-width: 28rem;
+            background: #111111;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-bottom: none;
+            border-radius: 28px 28px 0 0;
+            overflow: hidden;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
+        }
+        .modal-sheet.anim-in  { animation: modal-in  0.32s cubic-bezier(0.22,1,0.36,1) forwards; }
+        .modal-sheet.anim-out { animation: modal-out 0.22s ease forwards; }
+
+        .modal-handle {
+            width: 36px; height: 4px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 9999px;
+            margin: 14px auto 0;
+        }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .modal-header-icon {
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .modal-title-group { display: flex; align-items: center; gap: 12px; }
+        .modal-title { font-size: 13px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+        .modal-subtitle { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #52525b; margin-top: 1px; }
+
+        .modal-close-btn {
+            width: 34px; height: 34px; border-radius: 9999px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; flex-shrink: 0;
+            transition: background 0.15s;
+        }
+        .modal-close-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.93); }
+        .modal-close-btn .lucide { width: 16px; height: 16px; stroke: #71717a; }
+
+        .modal-input-wrap { position: relative; }
+        .modal-input-label {
+            position: absolute; top: 50%; left: 16px;
+            transform: translateY(-50%);
+            font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: #52525b;
+            pointer-events: none; transition: all 0.18s;
+        }
+        .modal-input {
+            width: 100%; background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px; padding: 20px 16px 8px;
+            font-size: 14px; color: #f4f4f5;
+            outline: none; transition: border-color 0.2s;
+            -webkit-appearance: none;
+        }
+        .modal-input:focus { border-color: rgba(255,255,255,0.18); }
+        .modal-input:focus + .modal-input-label,
+        .modal-input:not(:placeholder-shown) + .modal-input-label {
+            top: 10px; transform: none; font-size: 9px; color: #71717a;
+        }
+
+        .modal-confirm-btn {
+            width: 100%; padding: 16px;
+            border-radius: 16px; border: none;
+            font-size: 11px; font-weight: 900;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            transition: opacity 0.15s, transform 0.15s;
+            position: relative; overflow: hidden;
+        }
+        .modal-confirm-btn:active { opacity: 0.85; transform: scale(0.98); }
+        .modal-confirm-btn::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .reward-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 18px; padding: 18px;
+            transition: border-color 0.2s;
+        }
+        .reward-card:active { border-color: rgba(255,255,255,0.14); }
+
+        .store-input-section {
+            padding: 20px 24px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
     </style>
 </head>
 <body class="bg-[#0c0c0c] text-zinc-100 font-sans min-h-screen relative">
 
-    <div id="main-view" class="max-w-md mx-auto p-6 pb-24">
+    <div id="main-view" class="max-w-md mx-auto p-6 pb-32">
         <header class="mb-8 pt-6">
             <div class="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 shadow-2xl text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-600 to-orange-400"></div>
-
                 <button onclick="toggleView('history')" class="absolute top-6 left-6 text-zinc-400 p-2.5 bg-zinc-800 rounded-full border border-zinc-700 active:scale-95 z-10">
                     <i data-lucide="history"></i>
                 </button>
-
                 <button onclick="toggleStore()" class="absolute top-6 right-6 text-orange-500 p-2.5 bg-orange-500/10 rounded-full border border-orange-500/20 active:scale-95 z-10">
                     <i data-lucide="shopping-bag"></i>
                 </button>
-
                 <h1 class="text-[10px] uppercase tracking-[0.4em] text-zinc-500 font-black mb-1 mt-2">Performance Score</h1>
                 <div id="score" class="text-8xl font-black text-white tracking-tighter score-glow">0</div>
-
                 <div class="mt-5 inline-flex flex-col items-center gap-2 w-full">
                     <div class="px-5 py-2 rounded-full bg-orange-500/10 border border-orange-500/20">
                         <span id="rank-name" class="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em]">Criança</span>
@@ -152,25 +268,10 @@
             </div>
         </header>
 
-        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-10 shadow-xl">
-            <div class="flex gap-3 mb-4">
-                <input type="text" id="taskInput" placeholder="Nova tarefa..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-orange-500">
-                <input type="number" id="taskPoints" placeholder="Pts" class="w-20 bg-zinc-950 border border-zinc-800 rounded-xl px-2 py-4 text-center text-sm focus:outline-none focus:border-orange-500 font-bold text-orange-500">
-            </div>
-            <div class="flex items-center justify-between">
-                <label class="flex items-center gap-3 text-[10px] font-black uppercase text-zinc-500 cursor-pointer">
-                    <input type="checkbox" id="taskDaily" class="w-5 h-5 rounded border-zinc-800 bg-zinc-950 text-orange-600 focus:ring-0">
-                    Padrão
-                </label>
-                <button onclick="addTask()" class="bg-white text-black px-8 py-3 rounded-xl font-black text-xs uppercase hover:bg-orange-500 transition-all">Adicionar</button>
-            </div>
-        </div>
-
         <div class="flex justify-between items-end mb-6 px-1">
             <h2 class="text-xs font-black uppercase tracking-widest text-white">Tarefas</h2>
         </div>
 
-        <!-- Tela de início do dia -->
         <div id="start-screen" class="hidden flex-col items-center justify-center py-16 gap-8">
             <div class="text-center space-y-2">
                 <p class="text-[10px] uppercase tracking-[0.4em] text-zinc-500 font-black">Pronto para hoje?</p>
@@ -189,6 +290,81 @@
         <div id="taskList" class="space-y-4"></div>
     </div>
 
+    <div id="add-task-bar" class="hidden fixed bottom-0 left-0 right-0 z-[100] flex justify-center pb-8 pt-4 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/80 to-transparent pointer-events-none">
+        <button id="btn-add-task" class="pointer-events-auto bg-zinc-900 border border-green-500/40 text-green-400 font-black text-xs uppercase tracking-widest px-10 py-4 rounded-full flex items-center gap-3">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            Adicionar Tarefa
+        </button>
+    </div>
+
+    <!-- MODAL: ADICIONAR TAREFA -->
+    <div id="addTaskOverlay" class="modal-overlay is-hidden" style="align-items: flex-end;">
+        <div id="addTaskSheet" class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-header-icon" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2);">
+                        <i data-lucide="plus-circle" style="width:18px;height:18px;stroke:#22c55e;stroke-width:2.5"></i>
+                    </div>
+                    <div>
+                        <div class="modal-title" style="color:#22c55e;">Nova Tarefa</div>
+                        <div class="modal-subtitle">Adicione ao seu dia</div>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="btn-close-add"><i data-lucide="x"></i></button>
+            </div>
+            <div style="padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+                <div class="modal-input-wrap">
+                    <input class="modal-input" type="text" id="taskInput" placeholder=" ">
+                    <label class="modal-input-label">Nome da tarefa</label>
+                </div>
+                <div class="modal-input-wrap">
+                    <input class="modal-input" type="number" id="taskPoints" placeholder=" " style="color:#f97316;">
+                    <label class="modal-input-label">Pontos</label>
+                </div>
+                <div style="height:1px; background: rgba(255,255,255,0.05); margin: 4px 0;"></div>
+                <button class="modal-confirm-btn" onclick="addTask()" style="background: #16a34a; color: white;">
+                    Confirmar Tarefa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LOJA DE RECOMPENSAS -->
+    <div id="storeOverlay" class="modal-overlay is-hidden">
+        <div id="storeSheet" class="modal-sheet" style="border-radius: 28px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-header-icon" style="background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.2);">
+                        <i data-lucide="shopping-bag" style="width:18px;height:18px;stroke:#f97316;stroke-width:2.5"></i>
+                    </div>
+                    <div>
+                        <div class="modal-title" style="color:#f97316;">Loja de Mimos</div>
+                        <div class="modal-subtitle">Resgate sua recompensa</div>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="btn-close-store"><i data-lucide="x"></i></button>
+            </div>
+            <div class="store-input-section">
+                <div style="display:flex; gap:10px; margin-bottom:12px;">
+                    <div class="modal-input-wrap" style="flex:1">
+                        <input class="modal-input" type="text" id="newRewardName" placeholder=" ">
+                        <label class="modal-input-label">Nova recompensa</label>
+                    </div>
+                    <div class="modal-input-wrap" style="width:80px">
+                        <input class="modal-input" type="number" id="newRewardCost" placeholder=" " style="color:#f97316; padding-left:12px; padding-right:12px; text-align:center;">
+                        <label class="modal-input-label" style="left:12px;">Pts</label>
+                    </div>
+                </div>
+                <button class="modal-confirm-btn" onclick="createReward()" style="background: #ea580c; color: white;">
+                    Criar Recompensa
+                </button>
+            </div>
+            <div id="storeItems" class="custom-scroll" style="padding: 20px 24px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex:1;"></div>
+        </div>
+    </div>
+
     <div id="history-view" class="max-w-md mx-auto p-6 pb-24 hidden">
         <header class="mb-8 pt-6 flex items-center justify-between">
             <button onclick="toggleView('main')" class="text-zinc-400 p-2.5 bg-zinc-900 rounded-full border border-zinc-800"><i data-lucide="arrow-left"></i></button>
@@ -196,30 +372,6 @@
             <div class="w-10"></div>
         </header>
         <div id="historyList" class="space-y-4"></div>
-    </div>
-
-    <div id="storeModal" class="fixed inset-0 bg-black/95 z-[150] flex items-center justify-center p-4 backdrop-blur-xl opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-sm shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
-            <div class="p-8 border-b border-zinc-800 flex justify-between items-center">
-                <div>
-                    <h2 class="text-xs font-black uppercase text-orange-500">Loja de Mimos</h2>
-                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Resgate sua recompensa</p>
-                </div>
-                <button onclick="toggleStore()" class="text-zinc-500 bg-zinc-800 p-2 rounded-full"><i data-lucide="x"></i></button>
-            </div>
-
-            <div class="p-6 bg-zinc-950/50 border-b border-zinc-800">
-                <div class="flex flex-col gap-2">
-                    <div class="flex gap-2">
-                        <input type="text" id="newRewardName" placeholder="Nova recompensa..." class="text-xs flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 focus:outline-none">
-                        <input type="number" id="newRewardCost" placeholder="Pts" class="text-xs w-20 bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-3 focus:outline-none font-bold text-orange-500 text-center">
-                    </div>
-                    <button onclick="createReward()" class="w-full bg-zinc-100 text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 transition-colors">Criar Recompensa</button>
-                </div>
-            </div>
-
-            <div id="storeItems" class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1"></div>
-        </div>
     </div>
 
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-[10px] font-black tracking-widest shadow-2xl transition-all duration-300 z-[200] pointer-events-none opacity-0 translate-y-20 bg-orange-600 text-white"></div>
@@ -240,10 +392,7 @@
         // --- BOTÃO INICIAR ---
         const btnStart = document.getElementById('btn-start');
         btnStart.addEventListener('click', handleStart);
-        btnStart.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            handleStart();
-        });
+        btnStart.addEventListener('touchend', function(e) { e.preventDefault(); handleStart(); });
 
         function handleStart() {
             const screen = document.getElementById('start-screen');
@@ -255,28 +404,73 @@
             }, 420);
         }
 
+        // --- HELPERS DE MODAL ---
+        function openModal(overlayId, sheetId) {
+            const overlay = document.getElementById(overlayId);
+            const sheet = document.getElementById(sheetId);
+            overlay.classList.remove('is-hidden', 'anim-out');
+            sheet.classList.remove('anim-out');
+            overlay.classList.add('anim-in');
+            sheet.classList.add('anim-in');
+        }
+
+        function closeModal(overlayId, sheetId, callback) {
+            const overlay = document.getElementById(overlayId);
+            const sheet = document.getElementById(sheetId);
+            overlay.classList.remove('anim-in');
+            sheet.classList.remove('anim-in');
+            overlay.classList.add('anim-out');
+            sheet.classList.add('anim-out');
+            setTimeout(() => {
+                overlay.classList.add('is-hidden');
+                overlay.classList.remove('anim-out');
+                sheet.classList.remove('anim-out');
+                if (callback) callback();
+            }, 220);
+        }
+
+        // --- MODAL ADICIONAR TAREFA ---
+        const btnAddTask = document.getElementById('btn-add-task');
+        const btnCloseAdd = document.getElementById('btn-close-add');
+        const addTaskOverlay = document.getElementById('addTaskOverlay');
+
+        btnAddTask.addEventListener('click', openAddModal);
+        btnAddTask.addEventListener('touchend', function(e) { e.preventDefault(); openAddModal(); });
+        btnCloseAdd.addEventListener('click', closeAddModal);
+        btnCloseAdd.addEventListener('touchend', function(e) { e.preventDefault(); closeAddModal(); });
+        addTaskOverlay.addEventListener('click', function(e) { if (e.target === addTaskOverlay) closeAddModal(); });
+
+        function openAddModal() { openModal('addTaskOverlay', 'addTaskSheet'); setTimeout(() => document.getElementById('taskInput').focus(), 300); }
+        function closeAddModal() { closeModal('addTaskOverlay', 'addTaskSheet'); }
+
+        // --- MODAL LOJA ---
+        const btnCloseStore = document.getElementById('btn-close-store');
+        const storeOverlay = document.getElementById('storeOverlay');
+
+        btnCloseStore.addEventListener('click', closeStore);
+        btnCloseStore.addEventListener('touchend', function(e) { e.preventDefault(); closeStore(); });
+        storeOverlay.addEventListener('click', function(e) { if (e.target === storeOverlay) closeStore(); });
+
+        function toggleStore() { openModal('storeOverlay', 'storeSheet'); renderStore(); }
+        function closeStore() { closeModal('storeOverlay', 'storeSheet'); }
+
         // --- RESET DE MEIA-NOITE ---
         function checkDailyReset() {
             const lastDate = localStorage.getItem('app_last_date');
             const today = new Date().toLocaleDateString();
-
             if (lastDate !== today) {
                 tasks.forEach(t => t.completed = false);
-
                 const dayOfWeek = new Date().getDay();
-                if (dayOfWeek === 0) {
-                    score = 0;
-                    localStorage.setItem('app_score', score);
-                }
-
+                if (dayOfWeek === 0) { score = 0; localStorage.setItem('app_score', score); }
                 localStorage.removeItem('app_defaults_loaded');
                 localStorage.setItem('app_last_date', today);
                 saveData();
             }
         }
 
-        // --- ÍCONES ---
-        const taskIcons = {
+        // --- ÍCONES (tarefas + recompensas) ---
+        const iconMap = {
+            // Tarefas domésticas
             'louça': 'utensils', 'robô': 'bot', 'estudar': 'book-open',
             'bebê': 'baby', 'dormir': 'moon', 'acordar': 'sun',
             'treinar': 'dumbbell', 'mercado': 'shopping-basket', 'carro': 'car',
@@ -302,26 +496,55 @@
             'música': 'music', 'jogar': 'gamepad-2', 'jogo': 'gamepad-2',
             'filme': 'tv', 'série': 'tv', 'passear': 'map-pin',
             'academia': 'dumbbell', 'meditar': 'heart',
-            'default': 'target'
+            // Recompensas — comida & bebida
+            'pizza': 'pizza', 'sorvete': 'ice-cream-2', 'chocolate': 'candy',
+            'doce': 'candy', 'bolo': 'cake', 'hamburguer': 'beef',
+            'hambúrguer': 'beef', 'lanche': 'sandwich', 'sushi': 'fish',
+            'restaurante': 'utensils', 'delivery': 'package',
+            'cerveja': 'beer', 'vinho': 'wine', 'drink': 'cocktail',
+            'suco': 'cup-soda', 'refrigerante': 'cup-soda',
+            // Recompensas — lazer & entretenimento
+            'cinema': 'clapperboard', 'netflix': 'tv-2', 'streaming': 'tv-2',
+            'show': 'ticket', 'teatro': 'ticket', 'ingresso': 'ticket',
+            'viagem': 'plane', 'passeio': 'map-pin', 'praia': 'waves',
+            'parque': 'trees', 'piscina': 'waves', 'spa': 'flower-2',
+            'massagem': 'hand', 'salão': 'scissors', 'cabelo': 'scissors',
+            'unha': 'scissors', 'manicure': 'scissors',
+            // Recompensas — compras & presentes
+            'roupa nova': 'shopping-bag', 'sapato': 'footprints',
+            'tênis': 'footprints', 'presente': 'gift', 'compra': 'shopping-bag',
+            'perfume': 'sparkles', 'maquiagem': 'sparkles',
+            'acessório': 'watch', 'relógio': 'watch', 'bolsa': 'briefcase',
+            // Recompensas — tecnologia
+            'jogo': 'gamepad-2', 'game': 'gamepad-2', 'app': 'smartphone',
+            'celular': 'smartphone', 'fone': 'headphones',
+            'headphone': 'headphones', 'computador': 'laptop',
+            // Recompensas — descanso & bem-estar
+            'descanso': 'sofa', 'sofá': 'sofa', 'dormir tarde': 'moon',
+            'soneca': 'moon', 'folga': 'calendar-off',
+            'meditação': 'flower-2', 'yoga': 'flower-2',
+            // Recompensas — dinheiro
+            'grana': 'banknote', 'vale': 'banknote', 'crédito': 'credit-card',
+            'cartão': 'credit-card', 'pix': 'zap',
+            // Default
+            'default': 'gift'
         };
 
         function getIcon(title) {
             const t = title.toLowerCase();
-            for (let key in taskIcons) { if (t.includes(key)) return taskIcons[key]; }
-            return taskIcons['default'];
+            for (let key in iconMap) { if (t.includes(key)) return iconMap[key]; }
+            return iconMap['default'];
         }
 
-        // --- SWIPE (CHECK) ---
+        // --- SWIPE ---
         function setupSwipe(el, taskId) {
             let startX = 0, currentX = 0, isDragging = false;
             const threshold = -110;
-
             const start = (e) => {
                 isDragging = true;
                 startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
                 el.style.transition = 'none';
             };
-
             const move = (e) => {
                 if (!isDragging) return;
                 currentX = (e.type.includes('mouse') ? e.clientX : e.touches[0].clientX) - startX;
@@ -331,7 +554,6 @@
                     el.parentElement.querySelector('.swipe-bg').style.opacity = Math.min(Math.abs(currentX) / 100, 1);
                 }
             };
-
             const end = () => {
                 if (!isDragging) return;
                 isDragging = false;
@@ -345,7 +567,6 @@
                 }
                 currentX = 0;
             };
-
             el.addEventListener('mousedown', start);
             window.addEventListener('mousemove', move);
             window.addEventListener('mouseup', end);
@@ -377,17 +598,21 @@
             const activeTasks = tasks.filter(t => !t.completed);
             tList.innerHTML = '';
 
-            // Mostra tela de início se padrões ainda não foram carregados hoje
             const today = new Date().toLocaleDateString();
             const defaultsLoaded = localStorage.getItem('app_defaults_loaded') === today;
             const startScreen = document.getElementById('start-screen');
+            const addTaskBar = document.getElementById('add-task-bar');
 
-            if (!defaultsLoaded && activeTasks.length === 0) {
+            if (!defaultsLoaded) {
                 startScreen.classList.remove('hidden');
                 startScreen.classList.add('flex');
+                addTaskBar.classList.add('hidden');
+                addTaskBar.classList.remove('flex');
             } else {
                 startScreen.classList.add('hidden');
                 startScreen.classList.remove('flex');
+                addTaskBar.classList.remove('hidden');
+                addTaskBar.classList.add('flex');
             }
 
             activeTasks.forEach((t, i) => {
@@ -415,7 +640,7 @@
             lucide.createIcons();
         }
 
-        // --- GESTÃO DA LOJA ---
+        // --- LOJA ---
         function createReward() {
             const name = document.getElementById('newRewardName').value.trim();
             const cost = parseInt(document.getElementById('newRewardCost').value);
@@ -431,17 +656,37 @@
 
         function renderStore() {
             const container = document.getElementById('storeItems');
-            container.innerHTML = rewards.map(r => `
-                <div class="bg-zinc-800/30 p-5 rounded-2xl border border-zinc-800">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="text-orange-500 bg-zinc-900 p-2 rounded-xl border border-zinc-800"><i data-lucide="trophy"></i></div>
-                            <span class="font-bold text-zinc-100 text-sm">${r.name}</span>
+            container.innerHTML = '';
+            if (!rewards.length) {
+                container.innerHTML = '<p style="text-align:center;color:#3f3f46;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:24px 0;">Nenhuma recompensa</p>';
+                return;
+            }
+            rewards.forEach(r => {
+                const icon = getIcon(r.name);
+                const canBuy = score >= r.cost;
+                const card = document.createElement('div');
+                card.className = 'reward-card';
+                card.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:40px;height:40px;border-radius:12px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i data-lucide="${icon}" style="width:18px;height:18px;stroke:#f97316;stroke-width:2.5"></i>
+                            </div>
+                            <div>
+                                <p style="font-weight:700;font-size:14px;color:#f4f4f5;line-height:1.2;">${r.name}</p>
+                                <p style="font-size:10px;font-weight:700;color:#52525b;text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;">${r.cost} pts</p>
+                            </div>
                         </div>
-                        <button onclick="deleteItem('reward', ${r.id})" class="text-zinc-700 p-2 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="deleteItem('reward', ${r.id})" style="padding:6px;color:#3f3f46;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0;">
+                            <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
+                        </button>
                     </div>
-                    <button onclick="buyReward(${r.cost})" class="w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${score >= r.cost ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-600 opacity-50'}">Resgatar • ${r.cost} pts</button>
-                </div>`).join('');
+                    <button onclick="buyReward(${r.cost})" class="modal-confirm-btn" style="background:${canBuy ? '#ea580c' : '#27272a'};color:${canBuy ? 'white' : '#52525b'};${canBuy ? '' : 'cursor:not-allowed;'}">
+                        ${canBuy ? 'Resgatar' : 'Pontos insuficientes'}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
             lucide.createIcons();
         }
 
@@ -455,12 +700,9 @@
         }
 
         function deleteItem(type, id) {
-            if(confirm("Excluir item permanentemente?")) {
+            if (confirm("Excluir item permanentemente?")) {
                 if (type === 'task') tasks = tasks.filter(t => t.id !== id);
-                else {
-                    rewards = rewards.filter(r => r.id !== id);
-                    renderStore();
-                }
+                else { rewards = rewards.filter(r => r.id !== id); renderStore(); }
                 updateUI();
             }
         }
@@ -472,33 +714,27 @@
             if (title) {
                 tasks.push({ id: Date.now(), title, points, completed: false });
                 document.getElementById('taskInput').value = '';
+                document.getElementById('taskPoints').value = '';
+                closeAddModal();
                 updateUI();
+                showToast("TAREFA ADICIONADA!");
             }
         }
 
         function restoreDefaultTasks(animate) {
             const defaults = [
-                { title: 'Lavar louças', points: 10 },
-                { title: 'Limpar Robô', points: 15 },
-                { title: 'Estudar por 1 Hora', points: 20 },
-                { title: 'Mamadeira Bebê', points: 10 },
-                { title: 'Treinar', points: 25 },
-                { title: 'Lavar Carro', points: 35 },
-                { title: 'Tirar Lixo', points: 15 },
-                { title: 'Comida Bebê', points: 15 },
-                { title: 'Desenhar', points: 20 },
-                { title: 'Ninar Bebê', points: 25 },
-                { title: 'Acordar até 7H', points: 15 },
-                { title: 'Dormir antes das 11H', points: 10 },
-                { title: 'Supermercado', points: 20 },
-                { title: 'Passar Roupas', points: 30 },
-                { title: 'Banho do Bebê', points: 30 },
-                { title: 'Lavar Roupas', points: 20 },
+                { title: 'Lavar louças', points: 10 }, { title: 'Limpar Robô', points: 15 },
+                { title: 'Estudar por 1 Hora', points: 20 }, { title: 'Mamadeira Bebê', points: 10 },
+                { title: 'Treinar', points: 25 }, { title: 'Lavar Carro', points: 35 },
+                { title: 'Tirar Lixo', points: 15 }, { title: 'Comida Bebê', points: 15 },
+                { title: 'Desenhar', points: 20 }, { title: 'Ninar Bebê', points: 25 },
+                { title: 'Acordar até 7H', points: 15 }, { title: 'Dormir antes das 11H', points: 10 },
+                { title: 'Supermercado', points: 20 }, { title: 'Passar Roupas', points: 30 },
+                { title: 'Banho do Bebê', points: 30 }, { title: 'Lavar Roupas', points: 20 },
             ];
             defaults.forEach(dt => {
-                if (!tasks.some(t => t.title === dt.title)) {
+                if (!tasks.some(t => t.title === dt.title))
                     tasks.push({ id: Date.now() + Math.random(), title: dt.title, points: dt.points, completed: false });
-                }
             });
             localStorage.setItem('app_defaults_loaded', new Date().toLocaleDateString());
             updateUI(animate);
@@ -507,7 +743,9 @@
         function toggleView(view) {
             document.getElementById('main-view').classList.toggle('hidden', view === 'history');
             document.getElementById('history-view').classList.toggle('hidden', view === 'main');
-            if (view === 'history') renderHistory(); else updateUI();
+            const addTaskBar = document.getElementById('add-task-bar');
+            if (view === 'history') { addTaskBar.classList.add('hidden'); renderHistory(); }
+            else updateUI();
         }
 
         function renderHistory() {
@@ -528,15 +766,11 @@
             if (t) { score -= t.points; t.completed = false; renderHistory(); updateUI(); }
         }
 
-        function toggleStore() {
-            const m = document.getElementById('storeModal');
-            m.classList.toggle('opacity-0'); m.classList.toggle('pointer-events-none');
-            if (!m.classList.contains('opacity-0')) renderStore();
-        }
-
         function showToast(msg) {
-            const t = document.getElementById('toast'); t.innerText = msg;
-            t.classList.remove('opacity-0', 'translate-y-20'); t.classList.add('opacity-100', 'translate-y-0');
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-20');
+            t.classList.add('opacity-100', 'translate-y-0');
             setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-0'); t.classList.add('opacity-0', 'translate-y-20'); }, 2000);
         }
 
