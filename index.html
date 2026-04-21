@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; touch-action: manipulation; }
-        .score-glow { text-shadow: 0 0 20px rgba(249, 115, 22, 0.2); }
+        .score-glow { text-shadow: 0 0 20px rgba(219, 103, 20, 0.2); }
 
         @keyframes check-pop {
             0% { transform: scale(0); opacity: 0; }
@@ -454,18 +454,46 @@
         function toggleStore() { openModal('storeOverlay', 'storeSheet'); renderStore(); }
         function closeStore() { closeModal('storeOverlay', 'storeSheet'); }
 
-        // --- RESET DE MEIA-NOITE ---
+        // --- RESET SEMANAL: toda segunda-feira a partir das 03:00 ---
         function checkDailyReset() {
+            const now = new Date();
+            const today = now.toLocaleDateString();
             const lastDate = localStorage.getItem('app_last_date');
-            const today = new Date().toLocaleDateString();
+
+            // Reset diário de tarefas
             if (lastDate !== today) {
                 tasks.forEach(t => t.completed = false);
-                const dayOfWeek = new Date().getDay();
-                if (dayOfWeek === 0) { score = 0; localStorage.setItem('app_score', score); }
                 localStorage.removeItem('app_defaults_loaded');
                 localStorage.setItem('app_last_date', today);
                 saveData();
             }
+
+            // Reset semanal de pontos: segunda-feira (dayOfWeek === 1) após 03:00
+            const dayOfWeek = now.getDay();   // 0=dom, 1=seg, ..., 6=sáb
+            const hour = now.getHours();
+            const lastWeeklyReset = localStorage.getItem('app_last_weekly_reset');
+
+            // Chave única para identificar a "janela de reset" desta semana:
+            // usamos o número da semana ISO para garantir que o reset
+            // aconteça apenas uma vez por semana.
+            const weekKey = getISOWeekKey(now);
+
+            if (dayOfWeek === 1 && hour >= 3 && lastWeeklyReset !== weekKey) {
+                score = 0;
+                localStorage.setItem('app_score', score);
+                localStorage.setItem('app_last_weekly_reset', weekKey);
+                saveData();
+            }
+        }
+
+        // Retorna uma chave no formato "YYYY-WNN" para identificar a semana
+        function getISOWeekKey(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7; // domingo = 7
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
         }
 
         // --- ÍCONES (tarefas + recompensas) ---
@@ -516,7 +544,7 @@
             'perfume': 'sparkles', 'maquiagem': 'sparkles',
             'acessório': 'watch', 'relógio': 'watch', 'bolsa': 'briefcase',
             // Recompensas — tecnologia
-            'jogo': 'gamepad-2', 'game': 'gamepad-2', 'app': 'smartphone',
+            'game': 'gamepad-2', 'app': 'smartphone',
             'celular': 'smartphone', 'fone': 'headphones',
             'headphone': 'headphones', 'computador': 'laptop',
             // Recompensas — descanso & bem-estar
